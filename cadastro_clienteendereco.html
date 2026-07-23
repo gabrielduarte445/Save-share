@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
     <title>Cadastro</title>
 </head>
 <body>
@@ -10,6 +11,9 @@
         <h1>Endereços</h1>
     </div>
     <form method="post" class="form-endereco">
+        <label for="cep">CEP:</label>
+        <input type="text" id="cep" name="cep" maxlength="9" placeholder="00000-000" required>
+
         <label for="rua">Rua:</label>
         <input type="text" id="rua" name="rua" required>
 
@@ -32,4 +36,5 @@
     </form>
 
 </body>
+<script src="viacepbusca.js"></script>
 </html>

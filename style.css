@@ -3,7 +3,7 @@ body {
     font-family: Arial, sans-serif;
     background-color: rgb(12, 167, 12);
 
-    display: flex;
+    display: block;
     justify-content: center;
     align-items: center;
     height: 100vh;
@@ -11,6 +11,7 @@ body {
 
 .container {
     text-align: center;
+    display:block;
 }
 
 .logo {
@@ -23,7 +24,7 @@ body {
     margin-bottom: 30px;
 }
 
-button {
+a {
     padding: 15px 40px;
     font-size: 18px;
     border: none;
@@ -32,8 +33,9 @@ button {
     color: white;
     cursor: pointer;
     transition: 0.3s;
+    text-decoration: none;
 }
 
-button:hover {
+a:hover {
     background-color: rgb(7, 90, 44);
 }
