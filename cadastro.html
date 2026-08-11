@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro</title>
+    <title>Cadastro de usuário</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,34 +12,91 @@
         <h1>Cadastro de Usuário</h1>
     </div>
     <form method="post" class="form-inicial">
-        <label for="nome">Nome completo:</label>
-        <input type="text" id="nome" name="nome" required>
+        <div class="form-grupo">
+        <label for="nome">Nome completo</label>
+        <div class="input-container sem-icone">
+                    <input type="text" id="nome" name="nome" placeholder="Seu nome completo" required>
+                </div>
+        </div>
 
-        <label for="telefone">Telefone:</label>
-        <input type="tel" id="telefone" name="telefone" required>
 
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required>
+        <div class="form-grupo">
+        <label for="telefone">Telefone</label>
+        <div class="input-container sem-icone">
+                    <input type="text" id="nome" name="nome" placeholder="Seu nomecompleto" required>
+                </div>
+        </div>
+        <div class="form-grupo">
+        <label for="email">Email</label>
+        <div class="input-container sem-icone">
+                    <input type="text" id="nome" name="nome" placeholder="Seu nome completo" required>
+                </div>
+        </div>
+        <!-- Seleção Cliente / Comerciante -->
+            <div class="form-grupo">
+                <p class="label-tipo">Você é:</p>
+                <div class="tipo-usuario-options">
+                    <input type="radio" id="cliente" name="tipo_usuario" value="cliente" checked hidden>
+                    <label for="cliente" class="btn-tipo">Cliente</label>
 
-        
-        <h2>Você é:</h2>
-        <input type="button" value="cliente">
-        <label for="cpf">Cpf:</label>
-        <input type="text" id="cpf" name="cpf" required>
-        <label for="data-nascimento">Data de Nascimento:</label>
-        <input type="date" id="data-nascimento" name="data-nascimento" required>
-        
-        <input type="button" value="comerciante">
-        <label for="cnpj">Cnpj:</label>
-        <input type="text" id="cnpj" name="cnpj">
-        <label for="data-nascimento">Data de Nascimento:</label>
-        <input type="date" id="data-nascimento" name="data-nascimento">
-        
-        <label for="senha">Senha:</label>
-        <input type="password" id="senha" name="senha" required>
+                    <input type="radio" id="comerciante" name="tipo_usuario" value="comerciante" hidden>
+                    <label for="comerciante" class="btn-tipo">Comerciante</label>
+                </div>
+            </div>
+        <!-- Campos para Cliente (Exibidos por padrão) -->
+            <div id="campos-cliente">
+                <div class="form-row">
+                    <div class="form-grupo flex-1">
+                        <label for="cpf">CPF</label>
+                        <div class="input-container sem-icone">
+                            <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00">
+                        </div>
+                    </div>
 
+                    <div class="form-grupo flex-1">
+                        <label for="data-nascimento-cli">Nascimento</label>
+                        <div class="input-container sem-icone">
+                            <input type="date" id="data-nascimento-cli" name="data_nascimento_cliente">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campos para Comerciante (Ocultos inicialmente via CSS/JS se desejar) -->
+            <div id="campos-comerciante" style="display: none;">
+                <div class="form-row">
+                    <div class="form-grupo flex-1">
+                        <label for="cnpj">CNPJ</label>
+                        <div class="input-container sem-icone">
+                            <input type="text" id="cnpj" name="cnpj" placeholder="00.000.000/0001-00">
+                        </div>
+                    </div>
+
+                    <div class="form-grupo flex-1">
+                        <label for="data-nascimento-com">Abertura / Nasc.</label>
+                        <div class="input-container sem-icone">
+                            <input type="date" id="data-nascimento-com" name="data_nascimento_comerciante">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Senha -->
+            <div class="form-grupo">
+                <label for="senha">Senha</label>
+                <div class="input-container sem-icone">
+                    <input type="password" id="senha" name="senha" placeholder="••••••••" required>
+                </div>
+            </div>
+
+            <!-- Botão Cadastrar -->
+            <button type="submit" class="btn-entrar">Cadastrar</button>
+        </form>
+
+        <p class="texto-cadastro">
+            Já tem uma conta? <a href="index.html" class="link-cadastro">Entrar</a>
+        </p>
+    </div>
         
-        <input type="submit" value="Cadastrar">
-    </form>
 </body>
 </html>

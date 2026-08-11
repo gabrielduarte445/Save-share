@@ -6,28 +6,57 @@
     <title>tela de login</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<div>
-    <div class="form-inicial">
-        <h1>Bem-vindo!</h1>
-        <div class="form-grupo">
-            <input placeholder="email" type="email" required>
-            <img width="15" height="15" src="https://img.icons8.com/?size=100&id=16072&format=png&color=000000" alt="icone carta">
+<body>
+    <div class="card-login">
+    <!-- Logo de folha -->
+<div class="logo-container">
+            <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17 8C8 10 59 16.17 3.83 12 20c0-4.42 3.58-8 8-8 2 0 8 0 8 0s0 6 0 8zm-8 4c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z"/>
+                <!-- Ícone simplificado de folha -->
+                <path d="M17 3c-5 0-9 4-9 9 0 2.12.74 4.07 1.97 5.61L4.39 23.19l1.42 1.42 5.58-5.58C12.93 19.26 14.88 20 17 20c5 0 9-4 9-9 0-4.42-3.58-8-8-8zm0 15c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+            </svg>
         </div>
+    <h1 class="titulo">Bem-vindo!</h1>
+    <p class="subtitulo">Entre para continuar</p>
+    <form class="form-login">
+        
+        <!--Campo email-->
         <div class="form-grupo">
-            <input placeholder="password" type="password" required>
-            <img width="20" height="20" src="https://img.icons8.com/?size=100&id=14095&format=png&color=000000" alt="icone cadeado">
-            <a href="#">Esqueci minha senha</a>
+            <label for="email">E-mail</label>
+            <div class="input-container">
+                <img class="input-icon" src="https://img.icons8.com/?size=100&id=16072&format=png&color=666666" alt="Ícone carta">
+                <input type="email" id="email" placeholder="seu@email.com" required>
+            </div>
         </div>
+        
+        <!--Campo senha-->
+        <div class="form-grupo">
+           <label for="password">Senha</label>
+            <div class="input-container">
+                <img class="input-icon" src="https://img.icons8.com/?size=100&id=14095&format=png&color=666666" alt="Ícone cadeado">
+                <input type="password" id="password" placeholder="••••••••" required>
+            </div>
+            <div class="esqueci-senha-container">
+                <a href="#" class="link-esqueci">Esqueci minha senha</a>
+            </div>
+        </div>
+
         <div class="form-grupo">
             <p>Você é:</p>
-            <div class="container">
-                <button type="radio">Cliente</button>
-                <button type="radio"> comerciante</button>
+            <div class="tipo-usuario-options">
+                <input type="radio" id="cliente" name="tipo_usuario" value="cliente" checked hidden>
+                <label for="cliente" class="btn-tipo">Cliente</label>
+
+                <input type="radio" id="comerciante" name="tipo_usuario" value="comerciante" hidden>
+                <label for="comerciante" class="btn-tipo">Comerciante</label>
             </div>
         </div>
-            <button type="submit" class="">Entrar</button>
-            <p>Não está cadastrado? <a href="cadastro.html">cadastrar</a></p>
-            </div>
+
+            <button type="submit" class="btn-entrar">Entrar</button>
+            <p class="texto-cadastro"> 
+                <a href="cadastro.html" class="link-cadastro">Criar conta</a>
+            </p>
+    </form>
     </div>
 </div>
 </body>
