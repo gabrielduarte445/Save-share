@@ -7,12 +7,13 @@
     <title>Cadastro de usuário</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+    <div class="card-login">
     <div class="container">
-        <h1>Cadastro de Usuário</h1>
+        <h1 style="font-size: 32px;">Cadastro de Usuário</h1>
     </div>
     <form method="post" class="form-inicial">
         <div class="form-grupo">
+
         <label for="nome">Nome completo</label>
         <div class="input-container sem-icone">
                     <input type="text" id="nome" name="nome" placeholder="Seu nome completo" required>
@@ -23,13 +24,13 @@
         <div class="form-grupo">
         <label for="telefone">Telefone</label>
         <div class="input-container sem-icone">
-                    <input type="text" id="nome" name="nome" placeholder="Seu nomecompleto" required>
+                    <input type="tel" id="telefone" name="telefone" placeholder="7199999999" required>
                 </div>
         </div>
         <div class="form-grupo">
         <label for="email">Email</label>
         <div class="input-container sem-icone">
-                    <input type="text" id="nome" name="nome" placeholder="Seu nome completo" required>
+                    <input type="text" id="email" name="email" placeholder="seuemail@gmail" required>
                 </div>
         </div>
         <!-- Seleção Cliente / Comerciante -->
@@ -97,6 +98,6 @@
             Já tem uma conta? <a href="index.html" class="link-cadastro">Entrar</a>
         </p>
     </div>
-        
+    <script src="domcadastroclienteecomerciante.js"></script>
 </body>
 </html>
