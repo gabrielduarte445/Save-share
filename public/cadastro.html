@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro de usuário</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../style.css">
 </head>
 <body class="body-login">
     
@@ -14,7 +14,7 @@
     <div class="container">
         <h1 style="font-size: 32px;">Cadastro de Usuário</h1>
     </div>
-    <form method="post" class="form-inicial">
+    <form id="form-cadastro" class="form-inicial">
         <div class="form-grupo">
 
         <label for="nome">Nome completo</label>
@@ -53,14 +53,21 @@
                     <div class="form-grupo flex-1">
                         <label for="cpf">CPF</label>
                         <div class="input-container sem-icone">
-                            <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00">
+                            <input 
+                            type="text" 
+                            id="cpf" 
+                            name="cpf" 
+                            placeholder="000.000.000-00">
                         </div>
                     </div>
 
                     <div class="form-grupo flex-1">
                         <label for="data-nascimento-cli">Nascimento</label>
                         <div class="input-container sem-icone">
-                            <input type="date" id="data-nascimento-cli" name="data_nascimento_cliente">
+                            <input 
+                            type="date" 
+                            id="data-nascimento-cli" 
+                            name="data_nascimento_cliente">
                         </div>
                     </div>
                 </div>
@@ -72,14 +79,30 @@
                     <div class="form-grupo flex-1">
                         <label for="cnpj">CNPJ</label>
                         <div class="input-container sem-icone">
-                            <input type="text" id="cnpj" name="cnpj" placeholder="00.000.000/0001-00">
+                            <input 
+                            type="text" 
+                            id="cnpj" 
+                            name="cnpj" 
+                            placeholder="00.000.000/0001-00">
                         </div>
                     </div>
+            <div class="form-grupo">
+                <label for="nome-loja">Nome da loja</label>
+                <div class="input-container sem-icone">
+                <input
+                    type="text"
+                    id="nome-loja"
+                    name="nome_loja"
+                    placeholder="Nome da sua loja">
+                </div>
+            </div>
 
                     <div class="form-grupo flex-1">
                         <label for="data-nascimento-com">Abertura / Nasc.</label>
                         <div class="input-container sem-icone">
-                            <input type="date" id="data-nascimento-com" name="data_nascimento_comerciante">
+                            <input type="date" 
+                            id="data-abertura" n
+                            ame="data_abertura">
                         </div>
                     </div>
                 </div>
@@ -98,9 +121,9 @@
         </form>
 
         <p class="texto-cadastro">
-            Já tem uma conta? <a href="index.html" class="link-cadastro">Entrar</a>
+            Já tem uma conta? <a href="login.html" class="link-cadastro">Entrar</a>
         </p>
     </div>
-    <script src="domcadastroclienteecomerciante.js"></script>
+    <script type="module" src="domcadastroclienteecomerciante.js"></script>
 </body>
 </html>

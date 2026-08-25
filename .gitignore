@@ -1,0 +1,14 @@
+# Ambiente Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Variáveis de ambiente
+.env
+
+# Credencial privada do Firebase
+backend/firebase-service-account.json
+
+# Arquivos temporários
+*.log
