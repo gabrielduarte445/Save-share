@@ -95,10 +95,14 @@ body {
 }
 
 .mensagem-erro {
-    color: #e50914;
-    font-size: 12px;
-    font-weight: 500;
-    margin-top: 6px;
+    color: #d32f2f;
+    font-size: 13px;
+    margin-top: 5px;
+    display: none;
+}
+
+.input-erro {
+    border: 1px solid #d32f2f !important;
 }
 
 .input-container {
