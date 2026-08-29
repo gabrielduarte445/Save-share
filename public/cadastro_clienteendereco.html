@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro de Endereço</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/style.css">
 </head>
-<body>
+<body class="body-login">
 
-    <div class="body-login card-endereco">
+    <div class="card-login card-endereco">
         <h1 class="titulo">Endereço</h1>
         <p class="subtitulo">Preencha os dados de localização</p>
 
-        <form method="post" class="form-login">
+        <form class="form-login" id="form-endereco">
 
             <div class="form-row">
                 <div class="form-grupo flex-2">
@@ -67,11 +67,11 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn-entrar">Cadastrar Endereço</button>
+            <button type="submit" class="btn-entrar" id="btn-salvar-endereco">Cadastrar Endereço</button>
         </form>
     </div>
 
-    <script src="../viacepbusca.js"></script>
+    <script src="/viacepbusca.js"></script>
+    <script type="module" src="/pages/endereco/cadastro-endereco.js"></script>
 </body>
 </html>
-<!--colocar formatação pra -->
