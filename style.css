@@ -255,6 +255,30 @@ input[type="radio"][hidden] {
     min-height: 100vh;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
 }
+.card-endereco {
+    max-width: 600px;
+}
+
+.form-row {
+    display: flex;
+    gap: 12px;
+}
+
+.form-row .form-grupo {
+    margin-bottom: 20px;
+}
+
+.flex-2 {
+    flex: 2;
+}
+
+.flex-1 {
+    flex: 1;
+}
+
+.sem-icone input {
+    padding: 14px 16px;
+}
 
 .home-header {
     background-color: #217738;
@@ -361,9 +385,13 @@ input[type="radio"][hidden] {
 .search-icon {
     position: absolute;
     left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
 }
 
 .search-input {
+
     width: 100%;
     padding: 12px 14px 12px 42px;
     border-radius: 10px;
@@ -372,6 +400,14 @@ input[type="radio"][hidden] {
     font-size: 14px;
     background-color: #ffffff;
     color: #333333;
+    appearance: none;
+    -webkit-appearance: none;
+}
+.search-input::-webkit-search-decoration,
+.search-input::-webkit-search-cancel-button,
+.search-input::-webkit-search-results-button,
+.search-input::-webkit-search-results-decoration {
+    display: none;
 }
 
 /* --- CATEGORIAS (Chips) --- */
