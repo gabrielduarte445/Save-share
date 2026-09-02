@@ -65,16 +65,20 @@ onAuthStateChanged(auth, async (usuario) => {
             });
 
         } else {
-            const endereco = resultado.docs[0].data();
+            let enderecoDoc = resultado.docs.find((d) => d.data().padrao);
+            if (!enderecoDoc) {
+                enderecoDoc = resultado.docs[0];
+            }
+
+            const endereco = enderecoDoc.data();
             textoLocalizacao.textContent =
                 `${endereco.logradouro || endereco.rua}, ${endereco.numero}`;
 
             badgeElemento.style.cursor = "pointer";
             badgeElemento.addEventListener("click", () => {
-                window.location.href = "../endereco/cadastro-endereco.html";
+                window.location.href = "/public/meus-enderecos.html";
             });
         }
-
     } catch (erro) {
         console.error("Erro ao buscar endereço:", erro);
         textoLocalizacao.textContent = "Erro ao carregar endereço";
