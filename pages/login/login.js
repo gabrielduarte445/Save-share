@@ -223,8 +223,7 @@ formulario.addEventListener("submit", async (event) => {
         // ENTRAR
         // =========================
 
-        window.location.href =
-            "pagina-inicial.html";
+       window.location.href = "/public/home.html";
 
 
     } catch (erro) {

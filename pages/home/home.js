@@ -23,7 +23,7 @@ onAuthStateChanged(auth, async (usuario) => {
 
     if (!usuario) {
         // Ninguém logado: manda de volta pro login
-        window.location.href = "../login/login.html";
+        window.location.href = "../../public/login.html";
         return;
     }
 
