@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrinho</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body class="body-login">
+
+    <div class="card-login card-carrinho">
+        <h1 class="titulo">Seu Carrinho</h1>
+        <p class="subtitulo">Revise seus itens antes de finalizar</p>
+
+        <div id="lista-itens" class="lista-itens">
+            <p class="empty-message">Carregando carrinho...</p>
+        </div>
+
+        <div class="resumo-carrinho" id="resumo-carrinho" style="display:none;">
+            <div class="resumo-linha">
+                <span>Total</span>
+                <span id="valor-total">R$ 0,00</span>
+            </div>
+        </div>
+
+        <!-- Bloco de endereço (aparece só na hora de finalizar) -->
+        <div class="endereco-checkout" id="endereco-checkout" style="display:none;">
+
+            <div class="endereco-checkout-com" id="endereco-checkout-com" style="display:none;">
+                <p class="label-tipo">Entregar em:</p>
+                <div class="endereco-selecionado" id="endereco-selecionado-texto"></div>
+                <button type="button" class="link-cadastro btn-trocar-endereco" id="btn-trocar-endereco">Trocar endereço</button>
+            </div>
+
+            <div class="endereco-checkout-sem" id="endereco-checkout-sem" style="display:none;">
+                <p class="mensagem-erro" style="display:block;">Você ainda não tem um endereço cadastrado.</p>
+                <button type="button" class="btn-entrar" id="btn-add-endereco">+ Adicionar endereço</button>
+            </div>
+
+        </div>
+
+        <button type="button" class="btn-entrar" id="btn-finalizar" style="display:none;">
+            Finalizar Pedido
+        </button>
+
+        <p class="texto-cadastro">
+            <a href="home.html" class="link-cadastro">Voltar às compras</a>
+        </p>
+    </div>
+
+    <script type="module" src="/pages/carrinho/carrinho.js"></script>
+</body>
+</html>
