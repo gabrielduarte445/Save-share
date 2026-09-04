@@ -1,0 +1,174 @@
+.cabecalho-produtos {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 20px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #eaedf0;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.titulo-produtos h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #222222;
+}
+
+.titulo-produtos p {
+    font-size: 13px;
+    color: #757575;
+    margin-top: 2px;
+}
+
+.btn-adicionar {
+    width: auto;
+    padding: 12px 20px;
+    margin-top: 0;
+}
+
+.main-produtos {
+    padding: 20px;
+}
+
+.grid-produtos {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    min-height: 100px;
+}
+
+@media (min-width: 768px) {
+    .grid-produtos { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1024px) {
+    .grid-produtos { grid-template-columns: repeat(3, 1fr); }
+}
+
+.card-produto {
+    border: 1px solid #eaedf0;
+    border-radius: 16px;
+    padding: 16px;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.imagem-produto {
+    width: 100%;
+    height: 140px;
+    background-color: #f2f2f2;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaaaaa;
+    font-size: 13px;
+}
+
+.informacoes-produto h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #222222;
+}
+
+.informacoes-produto .preco {
+    font-size: 14px;
+    font-weight: 700;
+    color: #217738;
+    margin-top: 4px;
+}
+
+.informacoes-produto .estoque {
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.estoque-disponivel {
+    color: #2e7d32;
+}
+
+.estoque-baixo {
+    color: #f59e0b;
+}
+
+.estoque-esgotado {
+    color: #d32f2f;
+}
+
+.acoes {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.acoes button {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #dcdcdc;
+    background-color: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-editar:hover {
+    border-color: #2e7d32;
+    color: #2e7d32;
+}
+
+.btn-excluir:hover {
+    border-color: #d32f2f;
+    color: #d32f2f;
+}
+
+/* --- MODAL --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.modal-conteudo {
+    background-color: #ffffff;
+    border-radius: 16px;
+    padding: 28px;
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-cabecalho {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-cabecalho h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #222222;
+}
+
+.btn-fechar-modal {
+    background: none;
+    border: none;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    color: #757575;
+}
