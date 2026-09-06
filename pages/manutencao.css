@@ -1,0 +1,17 @@
+.card-manutencao {
+    text-align: center;
+}
+
+.manutencao-icone {
+    background-color: #f59e0b;
+}
+
+.manutencao-detalhe {
+    width: 100%;
+    margin: 8px 0 16px 0;
+}
+
+.manutencao-detalhe p {
+    font-size: 13px;
+    color: #757575;
+}

@@ -29,7 +29,41 @@
 .link-esqueci:hover {
     text-decoration: underline;
 }
+.checkbox-lembrar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #444444;
+    cursor: pointer;
+}
 
+.checkbox-lembrar input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #2e7d32;
+    cursor: pointer;
+}
+
+.form-grupo-checkbox {
+    margin-bottom: 20px;
+}
+
+.btn-toggle-senha {
+    position: absolute;
+    right: 14px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 0;
+}
+
+.input-container input[type="password"],
+.input-container input[type="text"] {
+    padding-right: 42px;
+}
 .label-tipo {
     text-align: center;
     margin-bottom: 12px;

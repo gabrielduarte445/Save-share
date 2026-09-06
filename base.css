@@ -99,11 +99,25 @@ body {
 .input-icon {
     position: absolute;
     left: 14px;
+    top:50%;
+    transform:translateY(-50%);
     width: 18px;
     height: 18px;
     opacity: 0.6;
+    pointer-events: none;
 }
-
+.btn-toggle-senha {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 0;
+}
 .input-container input {
     width: 100%;
     padding: 14px 16px;
