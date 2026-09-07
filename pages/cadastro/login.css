@@ -95,3 +95,6 @@
     background-color: #f1f8e9;
     color: #1b5e20;
 }
+.form-row{
+    display: block!important;
+}
