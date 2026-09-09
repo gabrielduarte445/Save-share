@@ -19,33 +19,37 @@ const badgeElemento = document.getElementById("location-badge");
 const textoLocalizacao = document.getElementById("location-text");
 
 
+const botaoMeusProdutos = document.getElementById("btn-meus-produtos");
+
 onAuthStateChanged(auth, async (usuario) => {
 
     if (!usuario) {
-        // Ninguém logado: manda de volta pro login
-        window.location.href = "../../public/login.html";
+        window.location.href = "/public/login.html";
         return;
     }
 
+    // Nome do usuário + verificação de tipo
     try {
         const refUsuario = doc(db, "usuarios", usuario.uid);
         const docUsuario = await getDoc(refUsuario);
 
         if (docUsuario.exists()) {
-            nomeElemento.textContent = docUsuario.data().nome || "Usuário";
+            const dadosUsuario = docUsuario.data();
+            nomeElemento.textContent = dadosUsuario.nome || "Usuário";
+
+            if (dadosUsuario.tipo_usuario === "comerciante") {
+                botaoMeusProdutos.style.display = "flex";
+            }
+
         } else {
             nomeElemento.textContent = "Usuário";
         }
-
     } catch (erro) {
         console.error("Erro ao buscar usuário:", erro);
         nomeElemento.textContent = "Usuário";
     }
 
-
-    // =========================
     // ENDEREÇO
-    // =========================
 
     try {
         const enderecosRef = collection(db, "enderecos");
