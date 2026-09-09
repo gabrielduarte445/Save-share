@@ -1,0 +1,140 @@
+.perfil-topo {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background-color: #217738;
+    color: #ffffff;
+}
+
+.perfil-voltar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.perfil-voltar:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+.perfil-topo h1 {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.perfil-container {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 32px 20px 40px 20px;
+}
+
+.foto-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background-color: #f1f8e9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.avatar svg {
+    width: 48px;
+    height: 48px;
+    fill: none;
+    stroke: #2e7d32;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.alterar-foto {
+    margin-top: 12px;
+    color: #2e7d32;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.alterar-foto:hover {
+    text-decoration: underline;
+}
+
+.campo-observacao {
+    display: block;
+    font-size: 11px;
+    color: #999999;
+    margin-top: 4px;
+}
+
+.mensagem-status {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.mensagem-status.sucesso {
+    background-color: #f1f8e9;
+    color: #1b5e20;
+}
+
+.mensagem-status.erro {
+    background-color: #fdecea;
+    color: #d32f2f;
+}
+
+.endereco-perfil-box {
+    background-color: #f7f8f9;
+    border: 1px solid #eaedf0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+}
+
+.endereco-perfil-box p {
+    font-size: 13px;
+    color: #444444;
+}
+
+.btn-sair {
+    width: 100%;
+    padding: 14px;
+    margin-top: 16px;
+    border: 1.5px solid #d32f2f;
+    border-radius: 10px;
+    background-color: #ffffff;
+    color: #d32f2f;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-sair:hover {
+    background-color: #fdecea;
+}

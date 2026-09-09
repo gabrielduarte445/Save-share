@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil</title>
+    <link rel="stylesheet" href="../base.css">
+    <link rel="stylesheet" href="../pages/perfil/perfil.css">
+</head>
+<body class="body-app">
+
+    <header class="perfil-topo">
+        <a href="home.html" class="perfil-voltar" aria-label="Voltar">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <h1>Meu Perfil</h1>
+    </header>
+
+    <main class="perfil-container">
+
+        <section class="foto-section">
+            <div class="avatar" id="avatar">
+                <svg viewBox="0 0 24 24" id="avatar-icone">
+                    <circle cx="12" cy="8" r="3.5"></circle>
+                    <path d="M5.5 20c0-3.4 2.6-5.5 6.5-5.5s6.5 2.1 6.5 5.5"></path>
+                </svg>
+                <img id="avatar-preview" style="display:none;" alt="Foto de perfil">
+            </div>
+
+            <label for="foto" class="alterar-foto">Alterar foto</label>
+            <input type="file" id="foto" accept="image/*" hidden>
+        </section>
+
+        <p id="mensagem-status" class="mensagem-status" style="display:none;"></p>
+
+        <form id="perfilForm" class="form-login">
+
+            <div class="form-grupo">
+                <label for="nome">Nome completo</label>
+                <div class="input-container sem-icone">
+                    <input type="text" id="nome" placeholder="Seu nome completo" required>
+                </div>
+            </div>
+
+            <div class="form-grupo">
+                <label for="email">E-mail</label>
+                <div class="input-container sem-icone">
+                    <input type="email" id="email" disabled>
+                </div>
+                <small class="campo-observacao">O e-mail não pode ser alterado por aqui.</small>
+            </div>
+
+            <div class="form-grupo">
+                <label for="telefone">Telefone</label>
+                <div class="input-container sem-icone">
+                    <input type="tel" id="telefone" placeholder="(71) 99999-9999">
+                </div>
+            </div>
+
+            <div class="form-grupo">
+                <label for="tipo-usuario-display">Tipo de conta</label>
+                <div class="input-container sem-icone">
+                    <input type="text" id="tipo-usuario-display" disabled>
+                </div>
+            </div>
+
+            <div class="form-grupo">
+                <label>Endereço principal</label>
+                <div class="endereco-perfil-box" id="endereco-perfil-box">
+                    <p id="endereco-perfil-texto">Carregando...</p>
+                </div>
+                <a href="/public/meus-enderecos.html" class="link-cadastro">Gerenciar endereços</a>
+            </div>
+
+            <button type="submit" class="btn-entrar" id="btn-salvar-perfil">
+                Salvar alterações
+            </button>
+
+        </form>
+
+        <button type="button" class="btn-sair" id="btn-sair">
+            Sair da conta
+        </button>
+
+    </main>
+
+    <script type="module" src="/pages/perfil/perfil.js"></script>
+</body>
+</html>
