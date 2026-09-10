@@ -54,7 +54,7 @@
                 <div class="form-grupo">
                     <label for="produto-nome">Nome do produto</label>
                     <div class="input-container sem-icone">
-                        <input type="text" id="produto-nome" name="nome" placeholder="Ex: Pão francês" required>
+                        <input type="text" id="produto-nome" name="nome" placeholder="Ex: Maçã fuji" required>
                     </div>
                 </div>
 
@@ -81,12 +81,45 @@
                     </div>
                 </div>
 
+                <div class="form-grupo checklist-consumivel">
+                    <label class="checklist-titulo">Verificação de consumo</label>
+                    <p class="checklist-descricao">
+                        Confirme os itens abaixo antes de cadastrar o produto:
+                    </p>
+
+                    <label class="checklist-item">
+                        <input type="checkbox" name="check_mofo" id="check-mofo" required>
+                        <span>Sem sinais de mofo, fungos ou podridão</span>
+                    </label>
+
+                    <label class="checklist-item">
+                        <input type="checkbox" name="check_furos" id="check-furos" required>
+                        <span>Sem furos, cortes ou perfurações na casca</span>
+                    </label>
+
+                    <label class="checklist-item">
+                        <input type="checkbox" name="check_odor" id="check-odor" required>
+                        <span>Sem odor estranho ou fermentado</span>
+                    </label>
+
+                    <label class="checklist-item">
+                        <input type="checkbox" name="check_textura" id="check-textura" required>
+                        <span>Coloração e textura dentro do esperado, mesmo com marcas estéticas</span>
+                    </label>
+
+                    <label class="checklist-item">
+                        <input type="checkbox" name="check_consumo" id="check-consumo" required>
+                        <span>Confirmo que o produto está próprio para consumo, apenas fora do padrão visual de mercado</span>
+                    </label>
+                </div>
+
                 <button type="submit" class="btn-entrar" id="btn-salvar-produto">Salvar Produto</button>
             </form>
 
         </div>
     </div>
+    </div>
 
-    <script type="module" src="/pages/produtos/meusprodutos.js"></script>
+    <script type="module" src="/pages/produtos/meus-produtos.js"></script>
 </body>
 </html>
