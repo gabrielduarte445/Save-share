@@ -48,6 +48,107 @@ onAuthStateChanged(auth, async (usuario) => {
         console.error("Erro ao buscar usuário:", erro);
         nomeElemento.textContent = "Usuário";
     }
+    const containerProdutos = document.getElementById("products-container");
+    
+async function carregarProdutosDisponiveis() {
+
+    try {
+        const produtosRef = collection(db, "produtos");
+        const resultado = await getDocs(produtosRef);
+
+        if (resultado.empty) {
+            containerProdutos.innerHTML = `<p class="empty-message">Nenhum produto cadastrado no momento.</p>`;
+            return;
+        }
+
+        containerProdutos.innerHTML = "";
+
+        // Cache simples pra não buscar o mesmo comerciante várias vezes
+        const cacheLojas = {};
+
+        for (const docSnap of resultado.docs) {
+            const produto = docSnap.data();
+
+            if (produto.estoque <= 0) continue;
+
+            // Busca o nome da loja (com cache)
+            let nomeLoja = cacheLojas[produto.comerciante_id];
+
+            if (!nomeLoja) {
+                try {
+                    const refComerciante = doc(db, "usuarios", produto.comerciante_id);
+                    const docComerciante = await getDoc(refComerciante);
+                    nomeLoja = docComerciante.exists()
+                        ? (docComerciante.data().nome_loja || "Loja")
+                        : "Loja";
+                } catch {
+                    nomeLoja = "Loja";
+                }
+                cacheLojas[produto.comerciante_id] = nomeLoja;
+            }
+
+            const card = document.createElement("article");
+            card.className = "product-card";
+
+            card.innerHTML = `
+                <div class="product-image-placeholder">
+                    <span>Imagem</span>
+                </div>
+                <div class="product-info">
+                    <p class="product-title">${produto.nome}</p>
+                    <p class="product-description">${produto.descricao || ""}</p>
+                    <p class="product-price">R$ ${Number(produto.valor).toFixed(2).replace(".", ",")}</p>
+                    <p class="product-seller">Vendido por: ${nomeLoja}</p>
+                </div>
+                <div class="product-acoes">
+                    <div class="quantidade-seletor">
+                        <button type="button" class="btn-qtd" data-acao="diminuir">−</button>
+                        <span class="qtd-valor">1</span>
+                        <button type="button" class="btn-qtd" data-acao="aumentar">+</button>
+                    </div>
+                    <button type="button" class="btn-adicionar-carrinho">
+                        Adicionar
+                    </button>
+                </div>
+            `;
+
+            // Lógica do seletor de quantidade
+            const qtdValor = card.querySelector(".qtd-valor");
+            const botoesQtd = card.querySelectorAll(".btn-qtd");
+
+            botoesQtd.forEach((botao) => {
+                botao.addEventListener("click", () => {
+                    let atual = parseInt(qtdValor.textContent);
+
+                    if (botao.dataset.acao === "aumentar" && atual < produto.estoque) {
+                        atual++;
+                    } else if (botao.dataset.acao === "diminuir" && atual > 1) {
+                        atual--;
+                    }
+
+                    qtdValor.textContent = atual;
+                });
+            });
+
+            // Botão adicionar (por enquanto só um alerta — carrinho ainda não implementado)
+            card.querySelector(".btn-adicionar-carrinho").addEventListener("click", () => {
+                const quantidade = parseInt(qtdValor.textContent);
+                alert(`${quantidade}x ${produto.nome} adicionado! (Carrinho ainda em desenvolvimento)`);
+            });
+
+            containerProdutos.appendChild(card);
+        }
+
+        if (containerProdutos.innerHTML === "") {
+            containerProdutos.innerHTML = `<p class="empty-message">Nenhum produto disponível no momento.</p>`;
+        }
+
+    } catch (erro) {
+        console.error("Erro ao carregar produtos:", erro);
+        containerProdutos.innerHTML = `<p class="empty-message">Não foi possível carregar os produtos.</p>`;
+    }
+}
+    await carregarProdutosDisponiveis();
 
     // ENDEREÇO
 
