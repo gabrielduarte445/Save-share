@@ -6,6 +6,7 @@ import {
 
 import {
     doc,
+    setDoc,
     getDoc,
     collection,
     query,
@@ -13,7 +14,7 @@ import {
     getDocs
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-
+let usuarioLogado= null
 const nomeElemento = document.getElementById("user-name");
 const badgeElemento = document.getElementById("location-badge");
 const textoLocalizacao = document.getElementById("location-text");
@@ -27,6 +28,8 @@ onAuthStateChanged(auth, async (usuario) => {
         window.location.href = "/public/login.html";
         return;
     }
+
+    usuarioLogado= usuario;
 
     // Nome do usuário + verificação de tipo
     try {
@@ -49,7 +52,42 @@ onAuthStateChanged(auth, async (usuario) => {
         nomeElemento.textContent = "Usuário";
     }
     const containerProdutos = document.getElementById("products-container");
-    
+  
+async function adicionarAoCarrinho(produtoId, produto, quantidade) {
+
+    try {
+        const refCarrinho = doc(db, "carrinhos", usuarioLogado.uid);
+        const docCarrinho = await getDoc(refCarrinho);
+
+        let itens = docCarrinho.exists() ? (docCarrinho.data().itens || []) : [];
+
+        const indiceExistente = itens.findIndex((item) => item.produto_id === produtoId);
+
+        if (indiceExistente >= 0) {
+            itens[indiceExistente].quantidade += quantidade;
+        } else {
+            itens.push({
+                produto_id: produtoId,
+                nome: produto.nome,
+                preco: produto.valor,
+                quantidade: quantidade,
+                comerciante_id: produto.comerciante_id,
+                selecionado: true
+            });
+        }
+
+        await setDoc(refCarrinho, {
+            itens: itens,
+            atualizado_em: new Date()
+        });
+
+        alert(`${quantidade}x ${produto.nome} adicionado ao carrinho!`);
+
+    } catch (erro) {
+        console.error("Erro ao adicionar ao carrinho:", erro);
+        alert("Não foi possível adicionar ao carrinho.");
+    }
+}
 async function carregarProdutosDisponiveis() {
 
     try {
@@ -130,10 +168,10 @@ async function carregarProdutosDisponiveis() {
                 });
             });
 
-            // Botão adicionar (por enquanto só um alerta — carrinho ainda não implementado)
-            card.querySelector(".btn-adicionar-carrinho").addEventListener("click", () => {
+            // Botão adicionar ao carrinho
+            card.querySelector(".btn-adicionar-carrinho").addEventListener("click",async () => {
                 const quantidade = parseInt(qtdValor.textContent);
-                alert(`${quantidade}x ${produto.nome} adicionado! (Carrinho ainda em desenvolvimento)`);
+                await adicionarAoCarrinho(docSnap.id, produto, quantidade);
             });
 
             containerProdutos.appendChild(card);
