@@ -23,6 +23,20 @@
                 <span id="valor-total">R$ 0,00</span>
             </div>
         </div>
+        <div class="endereco-checkout" id="endereco-checkout" style="display:none;">
+
+            <div class="endereco-checkout-com" id="endereco-checkout-com" style="display:none;">
+                <p class="label-tipo">Entregar em:</p>
+                <div class="endereco-selecionado" id="endereco-selecionado-texto"></div>
+                <button type="button" class="link-cadastro btn-trocar-endereco" id="btn-trocar-endereco">Trocar endereço</button>
+            </div>
+
+            <div class="endereco-checkout-sem" id="endereco-checkout-sem" style="display:none;">
+                <p class="mensagem-erro" style="display:block;">Você ainda não tem um endereço cadastrado.</p>
+                <button type="button" class="btn-entrar" id="btn-add-endereco">+ Adicionar endereço</button>
+            </div>
+
+        </div>
 
         <button type="button" class="btn-entrar" id="btn-finalizar" style="display:none;">
             Finalizar Pedido

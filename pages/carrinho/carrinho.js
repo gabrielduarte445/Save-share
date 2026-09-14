@@ -7,7 +7,13 @@ import {
 import {
     doc,
     getDoc,
-    setDoc
+    setDoc,
+    deleteDoc,
+    collection,
+    query,
+    where,
+    getDocs,
+    addDoc
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 
@@ -15,7 +21,14 @@ const listaElemento = document.getElementById("lista-itens");
 const resumoElemento = document.getElementById("resumo-carrinho");
 const valorTotalElemento = document.getElementById("valor-total");
 const botaoFinalizar = document.getElementById("btn-finalizar");
+const enderecoCheckout = document.getElementById("endereco-checkout");
+const enderecoComElemento = document.getElementById("endereco-checkout-com");
+const enderecoSemElemento = document.getElementById("endereco-checkout-sem");
+const enderecoSelecionadoTexto = document.getElementById("endereco-selecionado-texto");
+const botaoTrocarEndereco = document.getElementById("btn-trocar-endereco");
+const botaoAddEndereco = document.getElementById("btn-add-endereco");
 
+let enderecoEscolhido = null;
 let usuarioAtual = null;
 let itensCarrinho = [];
 
@@ -29,6 +42,7 @@ onAuthStateChanged(auth, async (usuario) => {
 
     usuarioAtual = usuario;
     await carregarCarrinho();
+    await carregarEndereco();
 });
 
 
@@ -97,7 +111,59 @@ function renderizarCarrinho() {
     resumoElemento.style.display = "block";
     botaoFinalizar.style.display = "block";
 }
+async function carregarEndereco() {
 
+    try {
+        const enderecosRef = collection(db, "enderecos");
+        const consulta = query(enderecosRef, where("usuario_id", "==", usuarioAtual.uid));
+        const resultado = await getDocs(consulta);
+
+        if (resultado.empty) {
+            mostrarSemEndereco();
+            return;
+        }
+
+        let escolhido = resultado.docs.find((d) => d.data().padrao);
+        if (!escolhido) {
+            escolhido = resultado.docs[0];
+        }
+
+        enderecoEscolhido = { id: escolhido.id, ...escolhido.data() };
+        mostrarComEndereco(enderecoEscolhido);
+
+    } catch (erro) {
+        console.error("Erro ao carregar endereço:", erro);
+        mostrarSemEndereco();
+    }
+}
+
+
+function mostrarComEndereco(endereco) {
+    enderecoCheckout.style.display = "block";
+    enderecoComElemento.style.display = "block";
+    enderecoSemElemento.style.display = "none";
+
+    enderecoSelecionadoTexto.textContent =
+        `${endereco.logradouro}, ${endereco.numero} - ${endereco.bairro}, ${endereco.cidade}/${endereco.estado}`;
+}
+
+
+function mostrarSemEndereco() {
+    enderecoCheckout.style.display = "block";
+    enderecoComElemento.style.display = "none";
+    enderecoSemElemento.style.display = "block";
+
+    enderecoEscolhido = null;
+}
+
+
+botaoAddEndereco.addEventListener("click", () => {
+    window.location.href = "/cadastro_clienteendereco.html?retorno=checkout";
+});
+
+botaoTrocarEndereco.addEventListener("click", () => {
+    window.location.href = "/meus-enderecos.html?retorno=checkout";
+});
 
 function atualizarTotal() {
 
@@ -155,9 +221,49 @@ botaoFinalizar.addEventListener("click", () => {
 
     if (itensSelecionados.length === 0) {
         alert("Selecione ao menos um item para finalizar o pedido.");
-        return;
-    }
+        return
+    };
 
-    // Checkout (endereço + criação do pedido) vem na próxima etapa
-    alert("Próximo passo: checkout com endereço (ainda não implementado).");
-});
+// Simplificação inicial: assume que todos os itens são do mesmo comerciante
+        const comercianteId = itensSelecionados[0].comerciante_id;
+
+        const pedidosRef = collection(db, "pedidos");
+        await addDoc(pedidosRef,{
+            cliente_id: usuarioAtual.uid,
+            comerciante_id: comercianteId,
+            itens: itensSelecionados,
+            endereco_id: enderecoEscolhido.id,
+            endereco_snapshot: {
+                logradouro: enderecoEscolhido.logradouro,
+                numero: enderecoEscolhido.numero,
+                bairro: enderecoEscolhido.bairro,
+                cidade: enderecoEscolhido.cidade,
+                estado: enderecoEscolhido.estado,
+                cep: enderecoEscolhido.cep
+            },
+            data_hora_pedido: new Date(),
+            valor_total: valorTotal,
+            tipo_entrega: "entrega",
+            status: "postado"
+        });
+
+        // Remove do carrinho só os itens que foram comprados
+        itensCarrinho = itensCarrinho.filter((item) => !item.selecionado);
+
+        const refCarrinho = doc(db, "carrinhos", usuarioAtual.uid);
+        if (itensCarrinho.length === 0) {
+            await deleteDoc(refCarrinho);
+        } else {
+            await setDoc(refCarrinho, { itens: itensCarrinho, atualizado_em: new Date() });
+        }
+
+        alert("Pedido realizado com sucesso!");
+        window.location.href = "/home.html";
+
+    } catch(erro) {
+        console.error("Erro ao finalizar pedido:",erro);
+        alert("Não foi possível finalizar o pedido. Tente novamente.");
+        botaoFinalizar.disabled = false;
+        botaoFinalizar.textContent = "Finalizar Pedido";
+    }
+    //erro na linha 263 no catch(ainda nao diagnosticado)
