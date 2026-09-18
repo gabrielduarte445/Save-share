@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagamento</title>
+    <link rel="stylesheet" href="/base.css">
+    <link rel="stylesheet" href="../pages/pagamento/pagamento.css">
+</head>
+<body class="body-login">
+
+    <div class="card-login card-pagamento">
+        <h1 class="titulo">Pagamento</h1>
+        <p class="subtitulo">Revise seu pedido e escolha a forma de pagamento</p>
+
+        <div class="resumo-pedido" id="resumo-pedido">
+            <p class="empty-message">Carregando resumo...</p>
+        </div>
+
+        <div class="form-grupo">
+            <label>Forma de pagamento</label>
+            <div class="formas-pagamento" id="formas-pagamento">
+                <label class="forma-pagamento-item">
+                    <input type="radio" name="forma_pagamento" value="pix" checked>
+                    <span>Pix</span>
+                </label>
+                <label class="forma-pagamento-item">
+                    <input type="radio" name="forma_pagamento" value="cartao">
+                    <span>Cartão (na entrega)</span>
+                </label>
+                <label class="forma-pagamento-item">
+                    <input type="radio" name="forma_pagamento" value="dinheiro">
+                    <span>Dinheiro (na entrega)</span>
+                </label>
+            </div>
+        </div>
+
+        <p class="observacao-simulacao">
+            Pagamento simulado para fins acadêmicos — nenhuma cobrança real será feita.
+        </p>
+
+        <button type="button" class="btn-entrar" id="btn-confirmar-pagamento">
+            Confirmar Pagamento
+        </button>
+
+        <p class="texto-cadastro">
+            <a href="carrinho.html" class="link-cadastro">Voltar ao carrinho</a>
+        </p>
+    </div>
+
+    <script type="module" src="/pages/pagamento/pagamento.js"></script>
+</body>
+</html>
