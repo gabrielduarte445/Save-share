@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escolher Endereço</title>
+    <link rel="stylesheet" href="/base.css">
+    <link rel="stylesheet" href="../pages/endereco/endereco.css">
+</head>
+<body class="body-login">
+
+    <div class="card-login card-enderecos-lista">
+        <h1 class="titulo">Escolher Endereço</h1>
+        <p class="subtitulo">Selecione onde deseja receber seu pedido</p>
+
+        <div id="lista-selecao" class="lista-enderecos">
+            <p class="empty-message">Carregando endereços...</p>
+        </div>
+
+        <button type="button" class="btn-entrar" id="btn-novo-endereco-checkout">
+            + Adicionar novo endereço
+        </button>
+
+        <button type="button" class="btn-entrar" id="btn-confirmar-selecao" style="margin-top:10px; background-color:#1b5e20;" disabled>
+            Confirmar
+        </button>
+
+        <p class="texto-cadastro">
+            <a href="../../public/carrinho.html" class="link-cadastro">Cancelar</a>
+        </p>
+    </div>
+
+    <script type="module" src="/pages/enderecos/escolher-endereco.js"></script>
+</body>
+</html>

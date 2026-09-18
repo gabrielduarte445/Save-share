@@ -87,3 +87,43 @@
     border-color: #d32f2f;
     color: #d32f2f;
 }
+.endereco-card-selecao {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1.5px solid #eaedf0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.endereco-card-selecao:hover {
+    border-color: #a5d6a7;
+}
+
+.endereco-card-selecao.selecionado {
+    border-color: #2e7d32;
+    background-color: #f1f8e9;
+}
+
+.endereco-card-selecao input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #2e7d32;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.endereco-card-selecao .endereco-texto {
+    flex: 1;
+    font-size: 14px;
+    color: #333333;
+}
+
+.endereco-card-selecao .endereco-texto strong {
+    display: block;
+    font-size: 14px;
+    color: #222222;
+    margin-bottom: 2px;
+}

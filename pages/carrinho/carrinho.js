@@ -162,7 +162,7 @@ botaoAddEndereco.addEventListener("click", () => {
 });
 
 botaoTrocarEndereco.addEventListener("click", () => {
-    window.location.href = "/meus-enderecos.html?retorno=checkout";
+    window.location.href = "../public/escolher-endereco.html?retorno=checkout";
 });
 
 function atualizarTotal() {
@@ -215,20 +215,41 @@ async function removerItem(index) {
 }
 
 
-botaoFinalizar.addEventListener("click", () => {
+botaoFinalizar.addEventListener("click", async () => {
 
     const itensSelecionados = itensCarrinho.filter((item) => item.selecionado);
 
     if (itensSelecionados.length === 0) {
         alert("Selecione ao menos um item para finalizar o pedido.");
-        return
-    };
+        return;
+    }
 
-// Simplificação inicial: assume que todos os itens são do mesmo comerciante
+    if (!enderecoEscolhido) {
+        alert("Adicione um endereço antes de finalizar o pedido.");
+        return;
+    }
+
+    botaoFinalizar.disabled = true;
+    botaoFinalizar.textContent = "Enviando pedido...";
+
+    try {
+
+        const valorTotal = itensSelecionados.reduce(
+            (soma, item) => soma + (item.preco * item.quantidade), 0
+        );
+
+        //LIMITAÇÃO CONHECIDA — REVISAR DEPOIS:
+        // Assumimos aqui que todos os itens do carrinho são do MESMO comerciante.
+        // Se o cliente tiver produtos de lojas diferentes selecionados ao mesmo
+        // tempo, este código cria um único pedido usando apenas o comerciante_id
+        // do primeiro item, ignorando os outros comerciantes.
+        //
+        // Solução futura: agrupar itensSelecionados por comerciante_id e criar
+        // um addDoc() em "pedidos" para cada grupo (um pedido por loja).
         const comercianteId = itensSelecionados[0].comerciante_id;
 
         const pedidosRef = collection(db, "pedidos");
-        await addDoc(pedidosRef,{
+        await addDoc(pedidosRef, {
             cliente_id: usuarioAtual.uid,
             comerciante_id: comercianteId,
             itens: itensSelecionados,
@@ -260,10 +281,10 @@ botaoFinalizar.addEventListener("click", () => {
         alert("Pedido realizado com sucesso!");
         window.location.href = "/home.html";
 
-    } catch(erro) {
-        console.error("Erro ao finalizar pedido:",erro);
+    } catch (erro) {
+        console.error("Erro ao finalizar pedido:", erro);
         alert("Não foi possível finalizar o pedido. Tente novamente.");
         botaoFinalizar.disabled = false;
         botaoFinalizar.textContent = "Finalizar Pedido";
     }
-    //erro na linha 263 no catch(ainda nao diagnosticado)
+});
