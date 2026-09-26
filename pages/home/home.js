@@ -19,7 +19,8 @@ const nomeElemento = document.getElementById("user-name");
 const badgeElemento = document.getElementById("location-badge");
 const textoLocalizacao = document.getElementById("location-text");
 
-
+const botaoMeusPedidos = document.getElementById("btn-meus-pedidos");
+const botaoPedidosRecebidos = document.getElementById("btn-pedidos-recebidos");
 const botaoMeusProdutos = document.getElementById("btn-meus-produtos");
 
 onAuthStateChanged(auth, async (usuario) => {
@@ -43,7 +44,12 @@ onAuthStateChanged(auth, async (usuario) => {
             if (dadosUsuario.tipo_usuario === "comerciante") {
                 botaoMeusProdutos.style.display = "flex";
             }
-
+            if (dadosUsuario.tipo_usuario === "comerciante") {
+                botaoMeusProdutos.style.display = "flex";
+                botaoPedidosRecebidos.style.display = "flex";
+            } else if (dadosUsuario.tipo_usuario === "cliente") {
+                botaoMeusPedidos.style.display = "flex";
+            }
         } else {
             nomeElemento.textContent = "Usuário";
         }
@@ -88,6 +94,7 @@ async function adicionarAoCarrinho(produtoId, produto, quantidade) {
         alert("Não foi possível adicionar ao carrinho.");
     }
 }
+
 async function carregarProdutosDisponiveis() {
 
     try {
