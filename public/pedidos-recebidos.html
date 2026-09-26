@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pedidos Recebidos</title>
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    height: 100%;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f7f8f9;
+    color: #333333;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+}
+
+.empty-message {
+    grid-column: 1 / -1;
+    color: #888888;
+    font-size: 14px;
+    text-align: center;
+    padding: 40px 0;
+}
+
+.topbar {
+    background-color: #ffffff;
+    border-bottom: 1px solid #eaedf0;
+    padding: 24px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.topbar .titulo-pagina {
+    font-size: 22px;
+    font-weight: 700;
+    color: #222222;
+    margin-bottom: 4px;
+}
+
+.topbar .subtitulo-pagina {
+    font-size: 14px;
+    color: #757575;
+}
+
+.conteudo {
+    padding: 32px 40px;
+}
+
+.secao-titulo {
+    font-size: 18px;
+    font-weight: 700;
+    color: #222222;
+    margin-bottom: 20px;
+}
+
+.grid-pedidos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.card-pedido {
+    background-color: #ffffff;
+    border: 1px solid #eaedf0;
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-pedido-topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 14px;
+    gap: 12px;
+}
+
+.cliente-nome {
+    font-size: 16px;
+    font-weight: 700;
+    color: #222222;
+    margin-bottom: 4px;
+}
+
+.pedido-data {
+    font-size: 13px;
+    color: #888888;
+}
+
+.status-badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+.status-aguardando {
+    background-color: #f3e5f5;
+    color: #6a1b9a;
+}
+
+.status-preparo {
+    background-color: #fff4e0;
+    color: #b8720a;
+}
+
+.status-entrega {
+    background-color: #e3f0fd;
+    color: #1565c0;
+}
+
+.status-entregue {
+    background-color: #e6f4ea;
+    color: #2e7d32;
+}
+
+.card-pedido-itens {
+    font-size: 14px;
+    color: #555555;
+    margin-bottom: 16px;
+    line-height: 1.6;
+}
+
+.card-pedido-itens ul {
+    list-style: none;
+    padding: 0;
+    margin: 6px 0 0 0;
+}
+
+.card-pedido-itens li {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+}
+
+.pedido-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 15px;
+    font-weight: 700;
+    color: #222222;
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f0;
+    margin-bottom: 18px;
+}
+
+.pedido-total span:last-child {
+    color: #2e7d32;
+}
+
+.status-controle label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #333333;
+    margin-bottom: 8px;
+}
+
+.select-status {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #333333;
+    background-color: #ffffff;
+    border: 1px solid #dcdcdc;
+    border-radius: 10px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+}
+
+.select-status:focus {
+    border-color: #2e7d32;
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+    <div>
+        <div class="titulo-pagina">Pedidos Recebidos</div>
+        <div class="subtitulo-pagina">Acompanhe e atualize o status dos pedidos da sua loja.</div>
+    </div>
+</header>
+
+<main class="conteudo">
+    <div class="secao-titulo">Pedidos</div>
+
+    <div class="grid-pedidos" id="grid-pedidos">
+        <p class="empty-message">Carregando pedidos...</p>
+    </div>
+</main>
+
+<script type="module" src="/pages/pedidos-recebidos/pedidos-recebidos.js"></script>
+
+</body>
+</html>
