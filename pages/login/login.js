@@ -22,10 +22,6 @@ const botaoToggleSenha = document.getElementById("btn-toggle-senha");
 const iconeOlho = document.getElementById("icone-olho");
 
 
-// =========================
-// MOSTRAR/OCULTAR SENHA
-// =========================
-
 botaoToggleSenha.addEventListener("click", () => {
 
     const visivel = campoSenha.type === "text";
@@ -42,10 +38,6 @@ botaoToggleSenha.addEventListener("click", () => {
     );
 });
 
-
-// =========================
-// MENSAGENS DE ERRO (mais amigáveis)
-// =========================
 
 function mostrarErro(campo, mensagem) {
 
@@ -116,10 +108,8 @@ formulario.addEventListener("submit", async (event) => {
 
     try {
 
-        // =========================
-        // LEMBRAR DE MIM
-        // =========================
 
+        // LEMBRAR DE MIM
         const persistencia = checkboxLembrar.checked
             ? browserLocalPersistence
             : browserSessionPersistence;
@@ -127,9 +117,7 @@ formulario.addEventListener("submit", async (event) => {
         await setPersistence(auth, persistencia);
 
 
-        // =========================
         // LOGIN FIREBASE
-        // =========================
 
         const resultado = await signInWithEmailAndPassword(auth, email, senha);
         const usuario = resultado.user;
@@ -153,7 +141,13 @@ formulario.addEventListener("submit", async (event) => {
             return;
         }
 
-        window.location.href = "/public/home.html";
+        // REDIRECIONAMENTO POR TIPO DE USUÁRIO
+
+        if (dadosUsuario.tipo_usuario === "entregador") {
+            window.location.href = "../../public/pedidos_disponiveis.html";
+        } else {
+            window.location.href = "../../public/home.html";
+        }
 
     } catch (erro) {
 

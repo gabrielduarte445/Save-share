@@ -37,17 +37,20 @@
                     <input type="text" id="email" name="email" placeholder="seuemail@gmail" required>
                 </div>
         </div>
-        <!-- Seleção Cliente / Comerciante -->
-            <div class="form-grupo">
-                <p class="label-tipo">Você é:</p>
-                <div class="tipo-usuario-options">
-                    <input type="radio" id="cliente" name="tipo_usuario" value="cliente" checked hidden>
-                    <label for="cliente" class="btn-tipo">Cliente</label>
+        <!-- Seleção Cliente / Comerciante / entregador -->
+<div class="form-grupo">
+    <p>Você é:</p>
+    <div class="tipo-usuario-options">
+        <input type="radio" id="cliente" name="tipo_usuario" value="cliente" checked hidden>
+        <label for="cliente" class="btn-tipo">Cliente</label>
 
-                    <input type="radio" id="comerciante" name="tipo_usuario" value="comerciante" hidden>
-                    <label for="comerciante" class="btn-tipo">Comerciante</label>
-                </div>
-            </div>
+        <input type="radio" id="comerciante" name="tipo_usuario" value="comerciante" hidden>
+        <label for="comerciante" class="btn-tipo">Comerciante</label>
+
+        <input type="radio" id="entregador" name="tipo_usuario" value="entregador" hidden>
+        <label for="entregador" class="btn-tipo">Entregador</label>
+    </div>
+</div>
         <!-- Campos para Cliente (Exibidos por padrão) -->
             <div id="campos-cliente">
                 <div class="form-row">
@@ -108,7 +111,36 @@
                     </div>
                 </div>
             </div>
+        <div class="campos-tipo" id="campos-entregador" style="display:none;">
 
+            <div class="form-grupo">
+                <label for="tipo-veiculo">Tipo de veículo</label>
+                <div class="input-container sem-icone">
+                    <select id="tipo-veiculo" name="tipo_veiculo">
+                        <option value="moto">Moto</option>
+                        <option value="carro">Carro</option>
+                        <option value="bicicleta">Bicicleta</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-grupo flex-1">
+                    <label for="placa-veiculo">Placa</label>
+                    <div class="input-container sem-icone">
+                        <input type="text" id="placa-veiculo" name="placa_veiculo" placeholder="ABC-1234">
+                    </div>
+                </div>
+
+                <div class="form-grupo flex-1">
+                    <label for="numero-cnh">Número da CNH</label>
+                    <div class="input-container sem-icone">
+                        <input type="text" id="numero-cnh" name="numero_cnh" placeholder="00000000000">
+                    </div>
+                </div>
+            </div>
+
+</div>
             <!-- Senha -->
             <div class="form-grupo">
                 <label for="senha">Senha</label>

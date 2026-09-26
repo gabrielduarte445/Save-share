@@ -90,7 +90,8 @@
 }
 
 #cliente:checked + label[for="cliente"],
-#comerciante:checked + label[for="comerciante"] {
+#comerciante:checked + label[for="comerciante"],
+#entregador:checked + label[for="entregador"]{
     border-color: #2e7d32;
     background-color: #f1f8e9;
     color: #1b5e20;
