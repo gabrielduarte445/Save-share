@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedidos Disponíveis</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f7f8f9;
+            color: #333333;
+        }
+
+        .topbar {
+            background-color: #ffffff;
+            border-bottom: 1px solid #eaedf0;
+            padding: 24px 40px;
+        }
+
+        .topbar .titulo-pagina {
+            font-size: 22px;
+            font-weight: 700;
+            color: #222222;
+            margin-bottom: 4px;
+        }
+
+        .topbar .subtitulo-pagina {
+            font-size: 14px;
+            color: #757575;
+        }
+
+        .conteudo {
+            padding: 32px 40px;
+        }
+
+        .secao {
+            margin-bottom: 40px;
+        }
+
+        .secao-titulo {
+            font-size: 18px;
+            font-weight: 700;
+            color: #222222;
+            margin-bottom: 20px;
+        }
+
+        .grid-pedidos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card-pedido {
+            background-color: #ffffff;
+            border: 1px solid #eaedf0;
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .card-pedido .pedido-valor {
+            font-size: 18px;
+            font-weight: 700;
+            color: #217738;
+        }
+
+        .card-pedido .pedido-endereco {
+            font-size: 14px;
+            color: #555555;
+            line-height: 1.5;
+        }
+
+        .card-pedido .pedido-itens {
+            font-size: 13px;
+            color: #888888;
+        }
+
+        .card-pedido button {
+            margin-top: 8px;
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+            background-color: #2e7d32;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .card-pedido button:hover {
+            background-color: #1b5e20;
+        }
+
+        .card-pedido button.btn-entregue {
+            background-color: #1565c0;
+        }
+
+        .card-pedido button.btn-entregue:hover {
+            background-color: #0d47a1;
+        }
+
+        .empty-message {
+            grid-column: 1 / -1;
+            color: #888888;
+            font-size: 14px;
+            text-align: center;
+            padding: 40px 0;
+            background-color: #ffffff;
+            border: 1px solid #eaedf0;
+            border-radius: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="topbar">
+        <div class="titulo-pagina">Pedidos Disponíveis</div>
+        <div class="subtitulo-pagina">Escolha um pedido para entregar</div>
+    </header>
+
+    <main class="conteudo">
+
+        <section class="secao">
+            <div class="secao-titulo">Disponíveis para entrega</div>
+            <div class="grid-pedidos" id="lista-disponiveis">
+                <p class="empty-message">Carregando pedidos...</p>
+            </div>
+        </section>
+
+        <section class="secao">
+            <div class="secao-titulo">Minhas entregas em andamento</div>
+            <div class="grid-pedidos" id="lista-minhas-entregas">
+                <p class="empty-message">Carregando...</p>
+            </div>
+        </section>
+
+    </main>
+
+    <script type="module" src="/pages/pedidos_disponiveis/pedidos-disponiveis.js"></script>
+</body>
+</html>
