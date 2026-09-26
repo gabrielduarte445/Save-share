@@ -156,7 +156,7 @@ botaoConfirmar.addEventListener("click", async () => {
             data_hora_pedido: new Date(),
             valor_total: valorTotal,
             tipo_entrega: "entrega",
-            status: "postado"
+            status: "aguardando_confirmação"
         });
 
         // Remove do carrinho só os itens comprados
