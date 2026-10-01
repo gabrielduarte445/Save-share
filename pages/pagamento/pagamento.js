@@ -1,5 +1,5 @@
 import { auth, db } from "../../public/firebase-config.js";
-
+import { mostrarToast, confirmarAcao } from "../shared/toast.js";
 import {
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
@@ -116,7 +116,7 @@ function renderizarResumo() {
 botaoConfirmar.addEventListener("click", async () => {
 
     if (itensSelecionados.length === 0 || !enderecoEscolhido) {
-        alert("Não foi possível processar o pagamento. Volte ao carrinho.");
+        mostrarToast("Não foi possível processar o pagamento. Volte ao carrinho.","erro");
         return;
     }
 
@@ -171,12 +171,12 @@ botaoConfirmar.addEventListener("click", async () => {
             await setDoc(refCarrinho, { itens: itensRestantes, atualizado_em: new Date() });
         }
 
-        alert("Pagamento confirmado! Seu pedido foi realizado. Pagina de pedidos em andamento");
+        mostrarToast("Pagamento confirmado! Seu pedido foi realizado. Pagina de pedidos em andamento","sucesso");
 
 
     } catch (erro) {
         console.error("Erro ao processar pagamento:", erro);
-        alert("Não foi possível processar o pagamento. Tente novamente.");
+        mostrarToast("Não foi possível processar o pagamento. Tente novamente.","erro");
         botaoConfirmar.disabled = false;
         botaoConfirmar.textContent = "Confirmar Pagamento";
     }

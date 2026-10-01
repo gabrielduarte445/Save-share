@@ -1,5 +1,5 @@
 import { auth, db } from "../../public/firebase-config.js";
-
+import { mostrarToast, confirmarAcao } from "/pages/shared/toast.js";
 import {
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
@@ -112,7 +112,7 @@ function selecionarEndereco(id, card) {
 botaoConfirmar.addEventListener("click", async () => {
 
     if (!enderecoSelecionadoId) {
-        alert("Selecione um endereço antes de confirmar.");
+        mostrarToast("Selecione um endereço antes de confirmar.","erro");
         return;
     }
 
@@ -138,7 +138,7 @@ botaoConfirmar.addEventListener("click", async () => {
 
     } catch (erro) {
         console.error("Erro ao confirmar endereço:", erro);
-        alert("Não foi possível confirmar o endereço selecionado.");
+        mostrarToast("Não foi possível confirmar o endereço selecionado.","Erro");
         botaoConfirmar.disabled = false;
         botaoConfirmar.textContent = "Confirmar";
     }

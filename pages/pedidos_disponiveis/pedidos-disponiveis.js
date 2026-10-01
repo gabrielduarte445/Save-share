@@ -1,5 +1,5 @@
 import { auth, db } from "/public/firebase-config.js";
-
+import { mostrarToast, confirmarAcao } from "../shared/toast.js";
 import {
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
@@ -89,7 +89,7 @@ async function pegarPedido(pedidoId) {
 
     } catch (erro) {
         console.error("Erro ao pegar pedido:", erro);
-        alert("Não foi possível pegar este pedido. Talvez outro entregador já tenha pegado.");
+        mostrarToast("Não foi possível pegar este pedido. Talvez outro entregador já tenha pegado.","erro");
     }
 }
 
@@ -141,7 +141,7 @@ function escutarMinhasEntregas() {
 
 async function marcarEntregue(pedidoId) {
 
-    const confirmar = confirm("Confirma que este pedido foi entregue?");
+    const confirmar = await confirmarAcao("Confirma que este pedido foi entregue?");
     if (!confirmar) return;
 
     try {
@@ -150,6 +150,6 @@ async function marcarEntregue(pedidoId) {
 
     } catch (erro) {
         console.error("Erro ao marcar como entregue:", erro);
-        alert("Não foi possível atualizar o pedido.");
+        mostrarToast("Não foi possível atualizar o pedido.","erro");
     }
 }

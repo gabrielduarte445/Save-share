@@ -1,5 +1,5 @@
 import { auth, db } from "/public/firebase-config.js";
-
+import { mostrarToast, confirmarAcao } from "/pages/shared/toast.js";
 import {
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";

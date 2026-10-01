@@ -1,4 +1,5 @@
 import { auth, db } from "/public/firebase-config.js";
+import { mostrarToast, confirmarAcao } from "../shared/toast.js";
 
 import {
     onAuthStateChanged
@@ -172,6 +173,6 @@ async function atualizarStatus(pedidoId, novoStatus, card) {
 
     } catch (erro) {
         console.error("Erro ao atualizar status:", erro);
-        alert("Não foi possível atualizar o status. Tente novamente.");
+        mostrarToast("Não foi possível atualizar o status. Tente novamente.","erro");
     }
 }

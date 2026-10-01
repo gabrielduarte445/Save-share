@@ -1,5 +1,7 @@
 import { auth, db } from "../../public/firebase-config.js";
 
+import { mostrarToast, confirmarAcao } from "../shared/toast.js";
+
 import {
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
@@ -187,7 +189,7 @@ formulario.addEventListener("submit", async (event) => {
     const idExistente = campoId.value;
 
     if (!nome || isNaN(valor) || valor < 0 || isNaN(estoque) || estoque < 0) {
-        alert("Preencha todos os campos corretamente.");
+        mostrarToast("Preencha todos os campos corretamente.","erro");
         return;
     }
 
@@ -199,7 +201,7 @@ formulario.addEventListener("submit", async (event) => {
         checkConsumo.checked;
 
     if (!checklistCompleto) {
-        alert("Confirme todos os itens da verificação de consumo antes de salvar.");
+        mostrarToast("Confirme todos os itens da verificação de consumo antes de salvar.","erro");
         return;
     }
 
@@ -238,7 +240,7 @@ formulario.addEventListener("submit", async (event) => {
 
     } catch (erro) {
         console.error("Erro ao salvar produto:", erro);
-        alert("Não foi possível salvar o produto. Tente novamente.");
+        mostrarToast("Não foi possível salvar o produto. Tente novamente.","erro");
 
     } finally {
         botaoSalvar.disabled = false;
@@ -249,7 +251,7 @@ formulario.addEventListener("submit", async (event) => {
 
 async function excluirProduto(id) {
 
-    const confirmar = confirm("Tem certeza que deseja excluir este produto?");
+    const confirmar = await confirmarAcao("Tem certeza que deseja excluir este produto?");
     if (!confirmar) return;
 
     try {
@@ -258,6 +260,6 @@ async function excluirProduto(id) {
 
     } catch (erro) {
         console.error("Erro ao excluir produto:", erro);
-        alert("Não foi possível excluir o produto.");
+        mostrarToast("Não foi possível excluir o produto.", "erro");
     }
 }

@@ -1,5 +1,5 @@
 import { auth, db } from "/public/firebase-config.js";
-
+import { mostrarToast, confirmarAcao } from "../shared/toast.js";
 import {
     onAuthStateChanged,
     signOut
@@ -170,7 +170,7 @@ function mostrarStatus(texto, tipo) {
 
 botaoSair.addEventListener("click", async () => {
 
-    const confirmar = confirm("Tem certeza que deseja sair da sua conta?");
+    const confirmar = await confirmarAcao("Tem certeza que deseja sair da sua conta?");
     if (!confirmar) return;
 
     try {
@@ -178,6 +178,6 @@ botaoSair.addEventListener("click", async () => {
         window.location.href = "/public/login.html";
     } catch (erro) {
         console.error("Erro ao sair:", erro);
-        alert("Não foi possível sair. Tente novamente.");
+        mostrarToast("Não foi possível sair. Tente novamente.","erro");
     }
 });
