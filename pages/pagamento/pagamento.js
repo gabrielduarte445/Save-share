@@ -138,10 +138,13 @@ botaoConfirmar.addEventListener("click", async () => {
         const comercianteId = itensSelecionados[0].comerciante_id;
 
         const pedidosRef = collection(db, "pedidos");
+        const codigoRetirada= Math.floor(1000+Math.random()*9000).toString()
+
         await addDoc(pedidosRef, {
             usuario_id: usuarioAtual.uid,
             cliente_id: usuarioAtual.uid,
             comerciante_id: comercianteId,
+            entregador_id: null,
             itens: itensSelecionados,
             endereco_id: enderecoEscolhido.id,
             endereco_snapshot: {
@@ -156,7 +159,8 @@ botaoConfirmar.addEventListener("click", async () => {
             data_hora_pedido: new Date(),
             valor_total: valorTotal,
             tipo_entrega: "entrega",
-            status: "aguardando_confirmação"
+            codigo_retirada:codigoRetirada,
+            status: "aguardando_confirmacao"
         });
 
         // Remove do carrinho só os itens comprados

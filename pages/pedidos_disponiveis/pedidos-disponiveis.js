@@ -34,8 +34,9 @@ onAuthStateChanged(auth, (usuario) => {
 
 
 function escutarDisponiveis() {
-
     const pedidosRef = collection(db, "pedidos");
+
+    // A QUERY TEM DE CORRESPONDER EXATAMENTE À REGRA DE LEITURA
     const consulta = query(
         pedidosRef,
         where("status", "==", "preparo"),
@@ -43,42 +44,56 @@ function escutarDisponiveis() {
     );
 
     onSnapshot(consulta, (resultado) => {
-
         if (resultado.empty) {
             listaDisponiveis.innerHTML = `<p class="empty-message">Nenhum pedido disponível no momento.</p>`;
             return;
         }
 
         listaDisponiveis.innerHTML = "";
-
+        
         resultado.docs.forEach((docSnap) => {
             const pedido = docSnap.data();
-            const itensTexto = pedido.itens.map((item) => `${item.quantidade}x ${item.nome}`).join(", ");
-
+            const itensTexto = (pedido.itens || []).map((item) => `${item.quantidade}x ${item.nome}`).join(", ");
+            
             const card = document.createElement("div");
             card.className = "card-pedido";
             card.innerHTML = `
-                <p class="pedido-valor">R$ ${Number(pedido.valor_total).toFixed(2)}</p>
+                <p class="pedido-valor">R$ ${Number(pedido.valor_total || 0).toFixed(2)}</p>
                 <p class="pedido-endereco">
-                    📍 ${pedido.endereco_snapshot.logradouro}, ${pedido.endereco_snapshot.numero} -
-                    ${pedido.endereco_snapshot.bairro}, ${pedido.endereco_snapshot.cidade}/${pedido.endereco_snapshot.estado}
+                    📍 ${pedido.endereco_snapshot?.logradouro || ""}, ${pedido.endereco_snapshot?.numero || ""} -
+                    ${pedido.endereco_snapshot?.bairro || ""}, ${pedido.endereco_snapshot?.cidade || ""}/${pedido.endereco_snapshot?.estado || ""}
                 </p>
                 <p class="pedido-itens">${itensTexto}</p>
-                <button type="button" class="btn-pegar-pedido">Pegar este pedido</button>
+                <input type="text" class="input-codigo" placeholder="Código de retirada (4 dígitos)" maxlength="4">
+                <button type="button" class="btn-pegar-pedido">Confirmar retirada</button>
             `;
 
-            card.querySelector(".btn-pegar-pedido").addEventListener("click", () => pegarPedido(docSnap.id));
+            card.querySelector(".btn-pegar-pedido").addEventListener("click", () => {
+                const codigoDigitado = card.querySelector(".input-codigo").value.trim();
+                pegarPedido(docSnap.id, pedido.codigo_retirada, codigoDigitado);
+            });
+
             listaDisponiveis.appendChild(card);
         });
-
     }, (erro) => {
-        console.error("Erro ao carregar pedidos disponíveis:", erro);
-        listaDisponiveis.innerHTML = `<p class="empty-message">Erro ao carregar pedidos.</p>`;
+        console.error("Erro no escutarDisponiveis:", erro);
+        listaDisponiveis.innerHTML = `<p class="empty-message">Erro ao carregar pedidos: ${erro.message}</p>`;
     });
 }
+async function pegarPedido(pedidoId, codigoCorreto, codigoDigitado) {
+    if (!codigoDigitado) {
+        alert("Digite o código de retirada informado pelo estabelecimento.");
+        return;
+    }
 
+    // Normaliza ambos para String e remove espaços acidentais
+    const codigoLimpoDigitado = String(codigoDigitado).trim();
+    const codigoLimpoCorreto = String(codigoCorreto).trim();
 
-async function pegarPedido(pedidoId) {
+    if (codigoLimpoDigitado !== codigoLimpoCorreto) {
+        alert("Código incorreto. Confirme o código com o estabelecimento.");
+        return;
+    }
 
     try {
         const refPedido = doc(db, "pedidos", pedidoId);
@@ -86,13 +101,13 @@ async function pegarPedido(pedidoId) {
             entregador_id: usuarioAtual.uid,
             status: "entrega"
         });
-
+        
+        alert("Retirada confirmada! Pedido em transporte.");
     } catch (erro) {
         console.error("Erro ao pegar pedido:", erro);
-        mostrarToast("Não foi possível pegar este pedido. Talvez outro entregador já tenha pegado.","erro");
+        alert("Não foi possível aceitar o pedido. Verifique o console para detalhes.");
     }
 }
-
 
 function escutarMinhasEntregas() {
 

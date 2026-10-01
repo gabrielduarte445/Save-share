@@ -1,5 +1,4 @@
 import { auth, db } from "/public/firebase-config.js";
-import { mostrarToast, confirmarAcao } from "../shared/toast.js";
 
 import {
     onAuthStateChanged
@@ -15,13 +14,10 @@ import {
     getDocs
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-
 const gridPedidos = document.getElementById("grid-pedidos");
 
 let usuarioAtual = null;
 
-// O comerciante só controla estas duas etapas — o restante é
-// responsabilidade do Entregador.
 const STATUS_INFO = {
     aguardando_confirmacao: { classe: "status-aguardando", texto: "Aguardando confirmação" },
     preparo:  { classe: "status-preparo",  texto: "Em preparo" },
@@ -29,9 +25,7 @@ const STATUS_INFO = {
     entregue: { classe: "status-entregue", texto: "Entregue" }
 };
 
-
 onAuthStateChanged(auth, async (usuario) => {
-
     if (!usuario) {
         window.location.href = "/public/login.html";
         return;
@@ -41,9 +35,7 @@ onAuthStateChanged(auth, async (usuario) => {
     await carregarPedidos();
 });
 
-
 async function carregarPedidos() {
-
     gridPedidos.innerHTML = `<p class="empty-message">Carregando pedidos...</p>`;
 
     try {
@@ -62,26 +54,28 @@ async function carregarPedidos() {
             return dataB - dataA;
         });
 
-        gridPedidos.innerHTML = "";
+        // 1. Identifica todos os IDs de clientes únicos para evitar requisições repetidas
+        const clienteIds = [...new Set(pedidosOrdenados.map(doc => doc.data().cliente_id).filter(Boolean))];
 
+        // 2. Busca todos os clientes em paralelo
         const cacheClientes = {};
+        await Promise.all(
+            clienteIds.map(async (clienteId) => {
+                try {
+                    const docCliente = await getDoc(doc(db, "usuarios", clienteId));
+                    cacheClientes[clienteId] = docCliente.exists() ? (docCliente.data().nome || "Cliente") : "Cliente";
+                } catch {
+                    cacheClientes[clienteId] = "Cliente";
+                }
+            })
+        );
+
+        // 3. Renderiza a tela rapidamente com os dados prontos
+        gridPedidos.innerHTML = "";
 
         for (const docSnap of pedidosOrdenados) {
             const pedido = docSnap.data();
-
-            let nomeCliente = cacheClientes[pedido.cliente_id];
-
-            if (!nomeCliente) {
-                try {
-                    const refCliente = doc(db, "usuarios", pedido.cliente_id);
-                    const docCliente = await getDoc(refCliente);
-                    nomeCliente = docCliente.exists() ? (docCliente.data().nome || "Cliente") : "Cliente";
-                } catch {
-                    nomeCliente = "Cliente";
-                }
-                cacheClientes[pedido.cliente_id] = nomeCliente;
-            }
-
+            const nomeCliente = cacheClientes[pedido.cliente_id] || "Cliente";
             const card = criarCardPedido(docSnap.id, pedido, nomeCliente);
             gridPedidos.appendChild(card);
         }
@@ -92,9 +86,7 @@ async function carregarPedidos() {
     }
 }
 
-
 function criarCardPedido(id, pedido, nomeCliente) {
-
     const statusAtual = STATUS_INFO[pedido.status] || STATUS_INFO.aguardando_confirmacao;
 
     const dataFormatada = pedido.data_hora_pedido?.toDate
@@ -104,15 +96,18 @@ function criarCardPedido(id, pedido, nomeCliente) {
           })
         : "";
 
-    const itensHtml = pedido.itens.map((item) => {
-        const subtotal = (item.preco * item.quantidade).toFixed(2);
-        return `<li><span>${item.quantidade}x ${item.nome}</span><span>R$ ${subtotal}</span></li>`;
+    const itens = Array.isArray(pedido.itens) ? pedido.itens : [];
+    const itensHtml = itens.map((item) => {
+        const preco = Number(item.preco) || 0;
+        const qtd = Number(item.quantidade) || 0;
+        const subtotal = (preco * qtd).toFixed(2);
+        return `<li><span>${qtd}x ${item.nome || "Item"}</span><span>R$ ${subtotal}</span></li>`;
     }).join("");
 
+    const totalFormatado = Number(pedido.valor_total || 0).toFixed(2);
     const card = document.createElement("div");
     card.className = "card-pedido";
 
-    // Comerciante só pode escolher entre as duas primeiras etapas
     const podeEditar = pedido.status === "aguardando_confirmacao" || pedido.status === "preparo";
 
     card.innerHTML = `
@@ -131,7 +126,7 @@ function criarCardPedido(id, pedido, nomeCliente) {
 
         <div class="pedido-total">
             <span>Total</span>
-            <span>R$ ${Number(pedido.valor_total).toFixed(2)}</span>
+            <span>R$ ${totalFormatado}</span>
         </div>
 
         ${podeEditar ? `
@@ -142,6 +137,11 @@ function criarCardPedido(id, pedido, nomeCliente) {
                 <option value="preparo" ${pedido.status === "preparo" ? "selected" : ""}>Em preparo</option>
             </select>
         </div>
+        ${pedido.status === "preparo" ? `
+        <p class="codigo-retirada">
+            Código de retirada: <strong>${pedido.codigo_retirada || "N/A"}</strong>
+        </p>
+        ` : ""}
         ` : `
         <p style="font-size:13px; color:#888888;">Este pedido já está com o entregador.</p>
         `}
@@ -157,22 +157,23 @@ function criarCardPedido(id, pedido, nomeCliente) {
     return card;
 }
 
-
 async function atualizarStatus(pedidoId, novoStatus, card) {
-
-    const badge = card.querySelector(".status-badge");
-    const info = STATUS_INFO[novoStatus];
-
     try {
         const refPedido = doc(db, "pedidos", pedidoId);
         await updateDoc(refPedido, { status: novoStatus });
 
-        badge.classList.remove("status-aguardando", "status-preparo", "status-entrega", "status-entregue");
-        badge.classList.add(info.classe);
-        badge.textContent = info.texto;
+        // Busca o pedido atualizado para re-renderizar
+        const docAtualizado = await getDoc(refPedido);
+        if (!docAtualizado.exists()) return;
+
+        const pedidoAtualizado = docAtualizado.data();
+        const nomeCliente = card.querySelector(".cliente-nome").textContent;
+        
+        const novoCard = criarCardPedido(pedidoId, pedidoAtualizado, nomeCliente);
+        card.replaceWith(novoCard);
 
     } catch (erro) {
         console.error("Erro ao atualizar status:", erro);
-        mostrarToast("Não foi possível atualizar o status. Tente novamente.","erro");
+        alert("Não foi possível atualizar o status. Tente novamente.");
     }
 }
