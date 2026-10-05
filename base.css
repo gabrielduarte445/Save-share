@@ -53,11 +53,27 @@ body {
     color: #757575;
     margin-bottom: 28px;
 }
+.logo-container {
+    width: 76px;
+    height: 76px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px auto;
+}
+
+.logo-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    fill: #ffffff;
+}
 
 /* ==========================================================================
    FORMULÁRIOS (login, cadastro, endereço, produtos)
    ========================================================================== */
-.form-login {
+
+   .form-login {
     width: 100%;
 }
 
