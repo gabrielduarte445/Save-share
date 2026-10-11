@@ -114,6 +114,16 @@ body {
     color: #856404;
     border: 1px solid #ffe69c;
 }
+.codigo-entrega {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background-color: #e3f0fd;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #084298;
+    text-align: center;
+}
+.codigo-entrega strong { font-size: 20px; letter-spacing: 3px; }
 
 .entrega {
     background-color: #cfe2ff;

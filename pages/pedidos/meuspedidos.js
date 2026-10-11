@@ -46,8 +46,7 @@ function escutarPedidos() {
     const consulta = query(pedidosRef, where("cliente_id", "==", usuarioAtual.uid));
 
     // onSnapshot mantém uma conexão aberta: este bloco roda de novo,
-    // automaticamente, toda vez que qualquer pedido do cliente mudar
-    // no Firestore — seja por ação do comerciante ou do entregador.
+    // automaticamente, toda vez que qualquer pedido do cliente mudar.
     onSnapshot(consulta, async (resultado) => {
 
         if (resultado.empty) {
@@ -61,13 +60,14 @@ function escutarPedidos() {
             return dataB - dataA;
         });
 
-        container.innerHTML = "";
+        const cards = [];
 
         for (const docSnap of pedidosOrdenados) {
-            const pedido = docSnap.data();
-            const card = await criarCardPedido(pedido);
-            container.appendChild(card);
+            cards.push(await criarCardPedido(docSnap.id, docSnap.data()));
         }
+
+        container.innerHTML = "";
+        cards.forEach((card) => container.appendChild(card));
 
     }, (erro) => {
         console.error("Erro ao escutar pedidos:", erro);
@@ -76,7 +76,7 @@ function escutarPedidos() {
 }
 
 
-async function criarCardPedido(pedido) {
+async function criarCardPedido(id, pedido) {
 
     const statusInfo = STATUS_INFO[pedido.status] || STATUS_INFO.aguardando_confirmacao;
 
@@ -86,7 +86,6 @@ async function criarCardPedido(pedido) {
 
     const itensTexto = pedido.itens.map((item) => `${item.quantidade}x ${item.nome}`).join(", ");
 
-    // Busca o nome da loja (com cache)
     let nomeLoja = cacheLojas[pedido.comerciante_id];
 
     if (!nomeLoja) {
@@ -115,7 +114,23 @@ async function criarCardPedido(pedido) {
             <p><strong>Loja:</strong> ${nomeLoja}</p>
             <p class="pedido-valor"><strong>Total:</strong> R$ ${Number(pedido.valor_total).toFixed(2)}</p>
         </div>
+
+        ${pedido.status === "entrega" ? `
+        <p class="codigo-entrega">
+            Informe este código ao entregador: <strong class="valor-codigo-entrega">...</strong>
+        </p>
+        ` : ""}
     `;
+
+    // Busca o código de entrega (somente o cliente dono do pedido consegue ler)
+    const elementoCodigo = card.querySelector(".valor-codigo-entrega");
+    if (elementoCodigo) {
+        getDoc(doc(db, "pedidos", id, "privado", "codigo_entrega"))
+            .then((snap) => {
+                elementoCodigo.textContent = snap.exists() ? snap.data().codigo : "indisponível";
+            })
+            .catch(() => { elementoCodigo.textContent = "indisponível"; });
+    }
 
     return card;
 }

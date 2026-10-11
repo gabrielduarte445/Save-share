@@ -1,5 +1,7 @@
-import { auth, db } from "../../public/firebase-config.js";
-import { mostrarToast, confirmarAcao } from "../shared/toast.js";
+import { auth, db } from "/public/firebase-config.js";
+import { mostrarToast } from "/pages/shared/toast.js";
+import { gerarCodigo } from "/pages/shared/codigo.js";
+
 import {
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
@@ -7,13 +9,11 @@ import {
 import {
     doc,
     getDoc,
-    setDoc,
-    deleteDoc,
     collection,
     query,
     where,
     getDocs,
-    addDoc
+    writeBatch
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 
@@ -21,6 +21,7 @@ const resumoElemento = document.getElementById("resumo-pedido");
 const botaoConfirmar = document.getElementById("btn-confirmar-pagamento");
 
 let usuarioAtual = null;
+let todosItensCarrinho = [];
 let itensSelecionados = [];
 let enderecoEscolhido = null;
 
@@ -28,7 +29,7 @@ let enderecoEscolhido = null;
 onAuthStateChanged(auth, async (usuario) => {
 
     if (!usuario) {
-        window.location.href = "/login.html";
+        window.location.href = "/public/login.html";
         return;
     }
 
@@ -40,12 +41,11 @@ onAuthStateChanged(auth, async (usuario) => {
 async function carregarResumo() {
 
     try {
-        // Carrega o carrinho
         const refCarrinho = doc(db, "carrinhos", usuarioAtual.uid);
         const docCarrinho = await getDoc(refCarrinho);
 
-        const itensCarrinho = docCarrinho.exists() ? (docCarrinho.data().itens || []) : [];
-        itensSelecionados = itensCarrinho.filter((item) => item.selecionado);
+        todosItensCarrinho = docCarrinho.exists() ? (docCarrinho.data().itens || []) : [];
+        itensSelecionados = todosItensCarrinho.filter((item) => item.selecionado);
 
         if (itensSelecionados.length === 0) {
             resumoElemento.innerHTML = `<p class="empty-message">Nenhum item selecionado. Volte ao carrinho.</p>`;
@@ -53,7 +53,6 @@ async function carregarResumo() {
             return;
         }
 
-        // Carrega o endereço padrão
         const enderecosRef = collection(db, "enderecos");
         const consulta = query(enderecosRef, where("usuario_id", "==", usuarioAtual.uid));
         const resultado = await getDocs(consulta);
@@ -116,7 +115,7 @@ function renderizarResumo() {
 botaoConfirmar.addEventListener("click", async () => {
 
     if (itensSelecionados.length === 0 || !enderecoEscolhido) {
-        mostrarToast("Não foi possível processar o pagamento. Volte ao carrinho.","erro");
+        mostrarToast("Não foi possível processar o pagamento. Volte ao carrinho.", "erro");
         return;
     }
 
@@ -132,16 +131,19 @@ botaoConfirmar.addEventListener("click", async () => {
         );
 
         // ⚠️ LIMITAÇÃO CONHECIDA — REVISAR DEPOIS:
-        // Assumimos aqui que todos os itens do carrinho são do MESMO comerciante.
+        // Assumimos que todos os itens do carrinho são do MESMO comerciante.
         // Solução futura: agrupar itensSelecionados por comerciante_id e criar
-        // um addDoc() em "pedidos" para cada grupo (um pedido por loja).
+        // um pedido para cada grupo (um por loja).
         const comercianteId = itensSelecionados[0].comerciante_id;
 
-        const pedidosRef = collection(db, "pedidos");
-        const codigoRetirada= Math.floor(1000+Math.random()*9000).toString()
+        const pedidoRef = doc(collection(db, "pedidos"));
+        const refCarrinho = doc(db, "carrinhos", usuarioAtual.uid);
+        const itensRestantes = todosItensCarrinho.filter((item) => !item.selecionado);
 
-        await addDoc(pedidosRef, {
-            usuario_id: usuarioAtual.uid,
+        // Tudo em um único lote: ou grava tudo, ou não grava nada.
+        const lote = writeBatch(db);
+
+        lote.set(pedidoRef, {
             cliente_id: usuarioAtual.uid,
             comerciante_id: comercianteId,
             entregador_id: null,
@@ -159,28 +161,31 @@ botaoConfirmar.addEventListener("click", async () => {
             data_hora_pedido: new Date(),
             valor_total: valorTotal,
             tipo_entrega: "entrega",
-            codigo_retirada:codigoRetirada,
             status: "aguardando_confirmacao"
         });
 
-        // Remove do carrinho só os itens comprados
-        const refCarrinho = doc(db, "carrinhos", usuarioAtual.uid);
-        const docCarrinho = await getDoc(refCarrinho);
-        let itensRestantes = docCarrinho.exists() ? (docCarrinho.data().itens || []) : [];
-        itensRestantes = itensRestantes.filter((item) => !item.selecionado);
+        // Código de entrega: só o cliente (dono) consegue lê-lo depois.
+        lote.set(doc(db, "pedidos", pedidoRef.id, "privado", "codigo_entrega"), {
+            codigo: gerarCodigo()
+        });
 
         if (itensRestantes.length === 0) {
-            await deleteDoc(refCarrinho);
+            lote.delete(refCarrinho);
         } else {
-            await setDoc(refCarrinho, { itens: itensRestantes, atualizado_em: new Date() });
+            lote.set(refCarrinho, { itens: itensRestantes, atualizado_em: new Date() });
         }
 
-        mostrarToast("Pagamento confirmado! Seu pedido foi realizado. Pagina de pedidos em andamento","sucesso");
+        await lote.commit();
 
+        mostrarToast("Pagamento confirmado! Seu pedido foi realizado.", "sucesso");
+
+        setTimeout(() => {
+            window.location.href = "/public/meus-pedidos.html";
+        }, 1200);
 
     } catch (erro) {
         console.error("Erro ao processar pagamento:", erro);
-        mostrarToast("Não foi possível processar o pagamento. Tente novamente.","erro");
+        mostrarToast("Não foi possível processar o pagamento. Tente novamente.", "erro");
         botaoConfirmar.disabled = false;
         botaoConfirmar.textContent = "Confirmar Pagamento";
     }

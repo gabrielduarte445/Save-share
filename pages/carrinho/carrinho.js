@@ -158,7 +158,7 @@ function mostrarSemEndereco() {
 
 
 botaoAddEndereco.addEventListener("click", () => {
-    window.location.href = "/cadastro_clienteendereco.html?retorno=checkout";
+    window.location.href = "../public/cadastro_clienteendereco.html?retorno=checkout";
 });
 
 botaoTrocarEndereco.addEventListener("click", () => {

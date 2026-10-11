@@ -1,4 +1,6 @@
 import { auth, db } from "/public/firebase-config.js";
+import { mostrarToast } from "/pages/shared/toast.js";
+import { gerarCodigo } from "/pages/shared/codigo.js";
 
 import {
     onAuthStateChanged
@@ -8,11 +10,12 @@ import {
     collection,
     doc,
     getDoc,
-    updateDoc,
     query,
     where,
-    getDocs
+    getDocs,
+    writeBatch
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
 
 const gridPedidos = document.getElementById("grid-pedidos");
 
@@ -25,7 +28,9 @@ const STATUS_INFO = {
     entregue: { classe: "status-entregue", texto: "Entregue" }
 };
 
+
 onAuthStateChanged(auth, async (usuario) => {
+
     if (!usuario) {
         window.location.href = "/public/login.html";
         return;
@@ -35,7 +40,9 @@ onAuthStateChanged(auth, async (usuario) => {
     await carregarPedidos();
 });
 
+
 async function carregarPedidos() {
+
     gridPedidos.innerHTML = `<p class="empty-message">Carregando pedidos...</p>`;
 
     try {
@@ -54,28 +61,26 @@ async function carregarPedidos() {
             return dataB - dataA;
         });
 
-        // 1. Identifica todos os IDs de clientes únicos para evitar requisições repetidas
-        const clienteIds = [...new Set(pedidosOrdenados.map(doc => doc.data().cliente_id).filter(Boolean))];
-
-        // 2. Busca todos os clientes em paralelo
-        const cacheClientes = {};
-        await Promise.all(
-            clienteIds.map(async (clienteId) => {
-                try {
-                    const docCliente = await getDoc(doc(db, "usuarios", clienteId));
-                    cacheClientes[clienteId] = docCliente.exists() ? (docCliente.data().nome || "Cliente") : "Cliente";
-                } catch {
-                    cacheClientes[clienteId] = "Cliente";
-                }
-            })
-        );
-
-        // 3. Renderiza a tela rapidamente com os dados prontos
         gridPedidos.innerHTML = "";
+
+        const cacheClientes = {};
 
         for (const docSnap of pedidosOrdenados) {
             const pedido = docSnap.data();
-            const nomeCliente = cacheClientes[pedido.cliente_id] || "Cliente";
+
+            let nomeCliente = cacheClientes[pedido.cliente_id];
+
+            if (!nomeCliente) {
+                try {
+                    const refCliente = doc(db, "usuarios", pedido.cliente_id);
+                    const docCliente = await getDoc(refCliente);
+                    nomeCliente = docCliente.exists() ? (docCliente.data().nome || "Cliente") : "Cliente";
+                } catch {
+                    nomeCliente = "Cliente";
+                }
+                cacheClientes[pedido.cliente_id] = nomeCliente;
+            }
+
             const card = criarCardPedido(docSnap.id, pedido, nomeCliente);
             gridPedidos.appendChild(card);
         }
@@ -86,7 +91,9 @@ async function carregarPedidos() {
     }
 }
 
+
 function criarCardPedido(id, pedido, nomeCliente) {
+
     const statusAtual = STATUS_INFO[pedido.status] || STATUS_INFO.aguardando_confirmacao;
 
     const dataFormatada = pedido.data_hora_pedido?.toDate
@@ -96,18 +103,15 @@ function criarCardPedido(id, pedido, nomeCliente) {
           })
         : "";
 
-    const itens = Array.isArray(pedido.itens) ? pedido.itens : [];
-    const itensHtml = itens.map((item) => {
-        const preco = Number(item.preco) || 0;
-        const qtd = Number(item.quantidade) || 0;
-        const subtotal = (preco * qtd).toFixed(2);
-        return `<li><span>${qtd}x ${item.nome || "Item"}</span><span>R$ ${subtotal}</span></li>`;
+    const itensHtml = pedido.itens.map((item) => {
+        const subtotal = (item.preco * item.quantidade).toFixed(2);
+        return `<li><span>${item.quantidade}x ${item.nome}</span><span>R$ ${subtotal}</span></li>`;
     }).join("");
 
-    const totalFormatado = Number(pedido.valor_total || 0).toFixed(2);
     const card = document.createElement("div");
     card.className = "card-pedido";
 
+    // Comerciante só controla as duas primeiras etapas
     const podeEditar = pedido.status === "aguardando_confirmacao" || pedido.status === "preparo";
 
     card.innerHTML = `
@@ -126,7 +130,7 @@ function criarCardPedido(id, pedido, nomeCliente) {
 
         <div class="pedido-total">
             <span>Total</span>
-            <span>R$ ${totalFormatado}</span>
+            <span>R$ ${Number(pedido.valor_total).toFixed(2)}</span>
         </div>
 
         ${podeEditar ? `
@@ -139,7 +143,7 @@ function criarCardPedido(id, pedido, nomeCliente) {
         </div>
         ${pedido.status === "preparo" ? `
         <p class="codigo-retirada">
-            Código de retirada: <strong>${pedido.codigo_retirada || "N/A"}</strong>
+            Código de retirada: <strong class="valor-codigo">...</strong>
         </p>
         ` : ""}
         ` : `
@@ -154,26 +158,46 @@ function criarCardPedido(id, pedido, nomeCliente) {
         });
     }
 
+    // Busca o código de retirada (somente o comerciante consegue ler)
+    const elementoCodigo = card.querySelector(".valor-codigo");
+    if (elementoCodigo) {
+        getDoc(doc(db, "pedidos", id, "privado", "codigo"))
+            .then((snap) => {
+                elementoCodigo.textContent = snap.exists() ? snap.data().codigo : "indisponível";
+            })
+            .catch(() => { elementoCodigo.textContent = "indisponível"; });
+    }
+
     return card;
 }
 
+
 async function atualizarStatus(pedidoId, novoStatus, card) {
+
     try {
         const refPedido = doc(db, "pedidos", pedidoId);
-        await updateDoc(refPedido, { status: novoStatus });
+        const refCodigo = doc(db, "pedidos", pedidoId, "privado", "codigo");
+        const lote = writeBatch(db);
 
-        // Busca o pedido atualizado para re-renderizar
+        lote.update(refPedido, { status: novoStatus });
+
+        // O código só é criado uma vez (as regras não permitem alterá-lo).
+        if (novoStatus === "preparo") {
+            const codigoExistente = await getDoc(refCodigo);
+            if (!codigoExistente.exists()) {
+                lote.set(refCodigo, { codigo: gerarCodigo() });
+            }
+        }
+
+        await lote.commit();
+
+        // Redesenha o card já com o novo status (e o código, se for o caso)
         const docAtualizado = await getDoc(refPedido);
-        if (!docAtualizado.exists()) return;
-
-        const pedidoAtualizado = docAtualizado.data();
         const nomeCliente = card.querySelector(".cliente-nome").textContent;
-        
-        const novoCard = criarCardPedido(pedidoId, pedidoAtualizado, nomeCliente);
-        card.replaceWith(novoCard);
+        card.replaceWith(criarCardPedido(pedidoId, docAtualizado.data(), nomeCliente));
 
     } catch (erro) {
         console.error("Erro ao atualizar status:", erro);
-        alert("Não foi possível atualizar o status. Tente novamente.");
+        mostrarToast("Não foi possível atualizar o status. Tente novamente.", "erro");
     }
 }
