@@ -1,4 +1,4 @@
-export function gerarCodigoFormatado(tamanho = 6) {
+export function gerarCodigo(tamanho = 6) {
     const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     const array = new Uint8Array(tamanho);
     

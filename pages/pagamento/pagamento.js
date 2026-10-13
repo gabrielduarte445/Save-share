@@ -1,6 +1,6 @@
-import { auth, db } from "/public/firebase-config.js";
-import { mostrarToast } from "/pages/shared/toast.js";
-import { gerarCodigo } from "/pages/shared/codigo.js";
+import { auth, db } from "../../public/firebase-config.js";
+import { mostrarToast } from "../shared/toast.js";
+import { gerarCodigo } from "../shared/codigo.js";
 
 import {
     onAuthStateChanged
@@ -104,7 +104,7 @@ function renderizarResumo() {
             <span>R$ ${total.toFixed(2)}</span>
         </div>
         <p class="resumo-endereco">
-            📍 ${enderecoEscolhido.logradouro}, ${enderecoEscolhido.numero} - ${enderecoEscolhido.bairro}, ${enderecoEscolhido.cidade}/${enderecoEscolhido.estado}
+             ${enderecoEscolhido.logradouro}, ${enderecoEscolhido.numero} - ${enderecoEscolhido.bairro}, ${enderecoEscolhido.cidade}/${enderecoEscolhido.estado}
         </p>
     `;
 
