@@ -4,6 +4,41 @@
     margin-top: 6px;
 }
 
+.divisor-ou {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 18px 0 14px;
+    color: #999999;
+    font-size: 13px;
+}
+.divisor-ou::before,
+.divisor-ou::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #e0e0e0;
+}
+
+.btn-google {
+    width: 100%;
+    padding: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #333333;
+    background-color: #ffffff;
+    border: 1.5px solid #dcdcdc;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.btn-google:hover { background-color: #f7f8f9; }
+.btn-google:disabled { opacity: 0.6; cursor: not-allowed; }
+
 .link-esqueci {
     font-size: 12px;
     color: #666666;

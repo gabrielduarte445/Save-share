@@ -2,6 +2,8 @@ import { auth, db } from "/public/firebase-config.js";
 
 import {
     signInWithEmailAndPassword,
+    signInWithPopup,
+    GoogleAuthProvider,
     setPersistence,
     browserLocalPersistence,
     browserSessionPersistence
@@ -20,7 +22,7 @@ const checkboxLembrar = document.getElementById("lembrar-de-mim");
 
 const botaoToggleSenha = document.getElementById("btn-toggle-senha");
 const iconeOlho = document.getElementById("icone-olho");
-
+const botaoGoogle = document.getElementById("btn-google");
 
 botaoToggleSenha.addEventListener("click", () => {
 
@@ -36,6 +38,80 @@ botaoToggleSenha.addEventListener("click", () => {
         "aria-label",
         visivel ? "Mostrar senha" : "Ocultar senha"
     );
+});
+function destinoDoTipo(tipo) {
+    return tipo === "entregador"
+        ? "/public/pedidos-disponiveis.html"
+        : "/public/home.html";
+}
+
+// A persistência é definida ANTES do clique: um await antes do popup
+// pode fazer o navegador bloquear a janela do Google.
+function aplicarPersistencia() {
+    const persistencia = checkboxLembrar.checked
+        ? browserLocalPersistence
+        : browserSessionPersistence;
+
+    setPersistence(auth, persistencia).catch((erro) => {
+        console.error("Erro ao definir persistência:", erro);
+    });
+}
+
+aplicarPersistencia();
+checkboxLembrar.addEventListener("change", aplicarPersistencia);
+
+
+botaoGoogle.addEventListener("click", async () => {
+
+    removerErro(campoEmail);
+    removerErro(campoSenha);
+    botaoGoogle.disabled = true;
+
+    try {
+        const resultado = await signInWithPopup(auth, new GoogleAuthProvider());
+        const usuario = resultado.user;
+
+        const snap = await getDoc(doc(db, "usuarios", usuario.uid));
+        const tipoEscolhido = document.querySelector('input[name="tipo_usuario"]:checked').value;
+
+        // Primeiro acesso: ainda não existe cadastro no sistema
+        if (!snap.exists()) {
+            window.location.href = `../../public/completar-cadastro.html?tipo=${encodeURIComponent(tipoEscolhido)}`;
+            return;
+        }
+
+        const tipoDaConta = snap.data().tipo_usuario;
+
+        if (tipoDaConta !== tipoEscolhido) {
+            mostrarErro(
+                campoEmail,
+                `Essa conta está cadastrada como "${tipoDaConta}". Selecione essa opção acima para entrar.`
+            );
+            return;
+        }
+
+        window.location.href = destinoDoTipo(tipoDaConta);
+
+    } catch (erro) {
+
+        console.error("Erro no login com Google:", erro);
+
+        if (erro.code === "auth/popup-closed-by-user" || erro.code === "auth/cancelled-popup-request") {
+            return;
+        }
+
+        const mensagens = {
+            "auth/popup-blocked": "O navegador bloqueou a janela do Google. Permita pop-ups para este site e tente de novo.",
+            "auth/unauthorized-domain": "Este endereço não está autorizado para login com Google.",
+            "auth/network-request-failed": "Falha de conexão. Verifique sua internet e tente novamente.",
+            "auth/account-exists-with-different-credential": "Já existe uma conta com esse e-mail usando outro método. Entre com e-mail e senha."
+        };
+
+        mostrarErro(campoEmail, mensagens[erro.code] || "Não foi possível entrar com o Google. Tente novamente.");
+
+    } finally {
+        botaoGoogle.disabled = false;
+    }
 });
 
 

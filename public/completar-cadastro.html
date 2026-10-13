@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="aguardando-auth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Completar cadastro</title>
+    <style>html.aguardando-auth body { visibility: hidden; }</style>
+    <!-- Cole aqui os mesmos <link rel="stylesheet"> do cadastro.html -->
+</head>
+<body class="body-login">
+
+    <div class="card-login">
+        <h1 class="titulo">Complete seu cadastro</h1>
+        <p class="subtitulo">Falta pouco para começar a usar o SAVE-SHARE.</p>
+
+        <form class="form-login" id="form-completar" novalidate>
+
+            <div class="form-grupo">
+                <p>Você é:</p>
+                <div class="tipo-usuario-options">
+                    <input type="radio" id="cliente" name="tipo_usuario" value="cliente" checked hidden>
+                    <label for="cliente" class="btn-tipo">Cliente</label>
+
+                    <input type="radio" id="comerciante" name="tipo_usuario" value="comerciante" hidden>
+                    <label for="comerciante" class="btn-tipo">Comerciante</label>
+
+                    <input type="radio" id="entregador" name="tipo_usuario" value="entregador" hidden>
+                    <label for="entregador" class="btn-tipo">Entregador</label>
+                </div>
+            </div>
+
+            <div class="form-grupo">
+                <label for="nome">Nome completo</label>
+                <div class="input-container sem-icone">
+                    <input type="text" id="nome" placeholder="Nome e sobrenome">
+                </div>
+            </div>
+
+            <div class="form-grupo">
+                <label for="telefone">Telefone</label>
+                <div class="input-container sem-icone">
+                    <input type="tel" id="telefone" placeholder="(71) 99999-9999">
+                </div>
+            </div>
+
+            <div id="campos-cliente">
+                <div class="form-grupo">
+                    <label for="cpf">CPF</label>
+                    <div class="input-container sem-icone">
+                        <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14">
+                    </div>
+                </div>
+                <div class="form-grupo">
+                    <label for="data-nascimento-cli">Data de nascimento</label>
+                    <div class="input-container sem-icone">
+                        <input type="date" id="data-nascimento-cli">
+                    </div>
+                </div>
+            </div>
+
+            <div id="campos-comerciante" style="display:none;">
+                <div class="form-grupo">
+                    <label for="cnpj">CNPJ</label>
+                    <div class="input-container sem-icone">
+                        <input type="text" id="cnpj" placeholder="00.000.000/0000-00" maxlength="18">
+                    </div>
+                </div>
+                <div class="form-grupo">
+                    <label for="nome-loja">Nome da loja</label>
+                    <div class="input-container sem-icone">
+                        <input type="text" id="nome-loja" placeholder="Nome da sua loja">
+                    </div>
+                </div>
+                <div class="form-grupo">
+                    <label for="data-abertura">Data de abertura</label>
+                    <div class="input-container sem-icone">
+                        <input type="date" id="data-abertura">
+                    </div>
+                </div>
+            </div>
+
+            <div id="campos-entregador" style="display:none;">
+                <div class="form-grupo">
+                    <label for="tipo-veiculo">Tipo de veículo</label>
+                    <div class="input-container sem-icone">
+                        <select id="tipo-veiculo">
+                            <option value="moto">Moto</option>
+                            <option value="carro">Carro</option>
+                            <option value="bicicleta">Bicicleta</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-grupo flex-1">
+                        <label for="placa-veiculo">Placa</label>
+                        <div class="input-container sem-icone">
+                            <input type="text" id="placa-veiculo" placeholder="ABC-1234">
+                        </div>
+                    </div>
+                    <div class="form-grupo flex-1">
+                        <label for="numero-cnh">Número da CNH</label>
+                        <div class="input-container sem-icone">
+                            <input type="text" id="numero-cnh" placeholder="00000000000">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-entrar" id="btn-concluir">Concluir cadastro</button>
+        </form>
+
+        <p class="texto-cadastro">
+            <button type="button" id="btn-cancelar" class="link-cadastro"
+                    style="background:none; border:none; cursor:pointer;">Cancelar e sair</button>
+        </p>
+    </div>
+
+    <script type="module" src="/pages/cadastro/completar-cadastro.js"></script>
+</body>
+</html>
