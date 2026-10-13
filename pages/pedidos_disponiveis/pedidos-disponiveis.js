@@ -14,7 +14,7 @@ import {
     onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-
+const FORMATO_CODIGO = /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/;
 const listaDisponiveis = document.getElementById("lista-disponiveis");
 const listaMinhasEntregas = document.getElementById("lista-minhas-entregas");
 
@@ -65,12 +65,12 @@ function escutarDisponiveis() {
                     ${pedido.endereco_snapshot.bairro}, ${pedido.endereco_snapshot.cidade}/${pedido.endereco_snapshot.estado}
                 </p>
                 <p class="pedido-itens">${itensTexto}</p>
-                <input type="text" class="input-codigo" placeholder="Código do estabelecimento (6 dígitos)" maxlength="6" inputmode="numeric">
+                <input type="text" class="input-codigo" placeholder="${placeholder}" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false">
                 <button type="button" class="btn-pegar-pedido">Confirmar retirada</button>
             `;
 
             card.querySelector(".btn-pegar-pedido").addEventListener("click", () => {
-                const codigoDigitado = card.querySelector(".input-codigo").value.trim();
+                const codigoDigitado = card.querySelector(".input-codigo").value.trim().toUpperCase();
                 pegarPedido(docSnap.id, codigoDigitado);
             });
 
