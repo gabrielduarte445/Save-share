@@ -180,7 +180,7 @@ botaoConfirmar.addEventListener("click", async () => {
         mostrarToast("Pagamento confirmado! Seu pedido foi realizado.", "sucesso");
 
         setTimeout(() => {
-            window.location.href = "../../public/meuspedidos.html";
+            window.location.href = "../../public/meus_pedidos.html";
         }, 1200);
 
     } catch (erro) {
