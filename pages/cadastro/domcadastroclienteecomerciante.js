@@ -1,5 +1,5 @@
 import { auth, db } from "../../public/firebase-config.js";
-
+import { ativarChecklistSenha, requisitosNaoAtendidos } from "../shared/senha.js";
 import {
     createUserWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
@@ -65,6 +65,12 @@ if (radEntregador) {
 
 
 const formulario = document.querySelector(".form-inicial");
+const campoSenhaChecklist = document.getElementById("senha");
+const listaChecklist = document.getElementById("checklist-senha");
+
+if (campoSenhaChecklist && listaChecklist) {
+    ativarChecklistSenha(campoSenhaChecklist, listaChecklist);
+}
 
 
 function mostrarErro(campo, mensagem) {
@@ -185,8 +191,13 @@ if (formulario) {
             formularioValido = false;
         }
 
-        if (senha.length < 6) {
-            mostrarErro(campoSenha, "A senha deve ter pelo menos 6 caracteres.");
+        const faltando = requisitosNaoAtendidos(senha);
+
+        if (faltando.length > 0) {
+            mostrarErro(
+                campoSenha,
+                "A senha precisa ter: " + faltando.map((r) => r.texto.toLowerCase()).join("; ") + "."
+            );
             formularioValido = false;
         }
 
