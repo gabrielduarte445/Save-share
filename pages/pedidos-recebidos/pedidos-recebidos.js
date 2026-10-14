@@ -1,10 +1,7 @@
-import { auth, db } from "/public/firebase-config.js";
-import { mostrarToast } from "/pages/shared/toast.js";
-import { gerarCodigo } from "/pages/shared/codigo.js";
-
-import {
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { auth, db } from "../../public/firebase-config.js";
+import { mostrarToast } from "../shared/toast.js";
+import { gerarCodigo } from "../shared/codigo.js";
+import { protegerPagina } from "../shared/guarda.js";
 
 import {
     collection,
@@ -16,10 +13,7 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-
 const gridPedidos = document.getElementById("grid-pedidos");
-
-let usuarioAtual = null;
 
 const STATUS_INFO = {
     aguardando_confirmacao: { classe: "status-aguardando", texto: "Aguardando confirmação" },
@@ -28,21 +22,14 @@ const STATUS_INFO = {
     entregue: { classe: "status-entregue", texto: "Entregue" }
 };
 
+// 1. A guarda protege a página para o tipo "comerciante" e já devolve o usuário validado
+const { usuario } = await protegerPagina({ tipos: ["comerciante"] });
+const usuarioAtual = usuario;
 
-onAuthStateChanged(auth, async (usuario) => {
-
-    if (!usuario) {
-        window.location.href = "/public/login.html";
-        return;
-    }
-
-    usuarioAtual = usuario;
-    await carregarPedidos();
-});
-
+// 2. Carrega os pedidos diretamente após a validação da guarda
+await carregarPedidos();
 
 async function carregarPedidos() {
-
     gridPedidos.innerHTML = `<p class="empty-message">Carregando pedidos...</p>`;
 
     try {
@@ -63,23 +50,9 @@ async function carregarPedidos() {
 
         gridPedidos.innerHTML = "";
 
-        const cacheClientes = {};
-
         for (const docSnap of pedidosOrdenados) {
             const pedido = docSnap.data();
-
-            let nomeCliente = cacheClientes[pedido.cliente_id];
-
-            if (!nomeCliente) {
-                try {
-                    const refCliente = doc(db, "usuarios", pedido.cliente_id);
-                    const docCliente = await getDoc(refCliente);
-                    nomeCliente = docCliente.exists() ? (docCliente.data().nome || "Cliente") : "Cliente";
-                } catch {
-                    nomeCliente = "Cliente";
-                }
-                cacheClientes[pedido.cliente_id] = nomeCliente;
-            }
+            const nomeCliente = pedido.cliente_nome || "Cliente";
 
             const card = criarCardPedido(docSnap.id, pedido, nomeCliente);
             gridPedidos.appendChild(card);
@@ -91,9 +64,7 @@ async function carregarPedidos() {
     }
 }
 
-
 function criarCardPedido(id, pedido, nomeCliente) {
-
     const statusAtual = STATUS_INFO[pedido.status] || STATUS_INFO.aguardando_confirmacao;
 
     const dataFormatada = pedido.data_hora_pedido?.toDate
@@ -171,9 +142,7 @@ function criarCardPedido(id, pedido, nomeCliente) {
     return card;
 }
 
-
 async function atualizarStatus(pedidoId, novoStatus, card) {
-
     try {
         const refPedido = doc(db, "pedidos", pedidoId);
         const refCodigo = doc(db, "pedidos", pedidoId, "privado", "codigo");

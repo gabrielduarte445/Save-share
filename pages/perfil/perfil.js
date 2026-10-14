@@ -1,7 +1,7 @@
 import { auth, db } from "/public/firebase-config.js";
 import { mostrarToast, confirmarAcao } from "../shared/toast.js";
+import { protegerPagina } from "../shared/guarda.js";
 import {
-    onAuthStateChanged,
     signOut
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
@@ -33,21 +33,11 @@ const avatarPreview = document.getElementById("avatar-preview");
 const avatarIcone = document.getElementById("avatar-icone");
 
 let usuarioAtual = null;
+const { usuario } = await protegerPagina(); 
+usuarioAtual = usuario;
 
-
-onAuthStateChanged(auth, async (usuario) => {
-
-    if (!usuario) {
-        window.location.href = "/public/login.html";
-        return;
-    }
-
-    usuarioAtual = usuario;
-
-    await carregarDadosUsuario();
-    await carregarEnderecoPrincipal();
-});
-
+await carregarDadosUsuario();
+await carregarEnderecoPrincipal();
 
 async function carregarDadosUsuario() {
 

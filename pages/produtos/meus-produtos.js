@@ -1,10 +1,6 @@
 import { auth, db } from "../../public/firebase-config.js";
-
+import { protegerPagina } from "../shared/guarda.js";
 import { mostrarToast, confirmarAcao } from "../shared/toast.js";
-
-import {
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 import {
     collection,
@@ -44,18 +40,10 @@ const checkConsumo = document.getElementById("check-consumo");
 let usuarioAtual = null;
 
 // PROTEÇÃO DE ROTA + CARREGAMENTO INICIAL
+const { usuario } = await protegerPagina({ tipos: ["comerciante"] });
+usuarioAtual = usuario;
 
-onAuthStateChanged(auth, async (usuario) => {
-
-    if (!usuario) {
-        window.location.href = "/public/login.html";
-        return;
-    }
-
-    usuarioAtual = usuario;
-
-    await carregarProdutos();
-});
+await carregarProdutos();
 
 // CARREGAR PRODUTOS DO COMERCIANTE LOGADO
 

@@ -1,8 +1,6 @@
 import { auth, db } from "/public/firebase-config.js";
-import { mostrarToast, confirmarAcao } from "/pages/shared/toast.js";
-import {
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { mostrarToast, confirmarAcao } from "../shared/toast.js";
+import { protegerPagina } from "/pages/shared/guarda.js";
 
 import {
     collection,
@@ -14,32 +12,20 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-
 const listaElemento = document.getElementById("lista-enderecos");
 const botaoNovo = document.getElementById("btn-novo-endereco");
 
-let usuarioAtual = null;
 
+const { usuario } = await protegerPagina({ tipos: ["cliente", "comerciante"] });
+const usuarioAtual = usuario;
 
 botaoNovo.addEventListener("click", () => {
     window.location.href = "/public/cadastro_clienteendereco.html";
 });
 
-
-onAuthStateChanged(auth, async (usuario) => {
-
-    if (!usuario) {
-        window.location.href = "/public/login.html";
-        return;
-    }
-
-    usuarioAtual = usuario;
-    await carregarEnderecos();
-});
-
+await carregarEnderecos();
 
 async function carregarEnderecos() {
-
     listaElemento.innerHTML = `<p class="empty-message">Carregando endereços...</p>`;
 
     try {
@@ -66,9 +52,7 @@ async function carregarEnderecos() {
     }
 }
 
-
 function criarCardEndereco(id, endereco) {
-
     const card = document.createElement("div");
     card.className = "endereco-card";
     if (endereco.padrao) {
@@ -103,9 +87,7 @@ function criarCardEndereco(id, endereco) {
     return card;
 }
 
-
 async function definirComoPadrao(idEscolhido) {
-
     try {
         const enderecosRef = collection(db, "enderecos");
         const consulta = query(enderecosRef, where("usuario_id", "==", usuarioAtual.uid));
@@ -127,9 +109,7 @@ async function definirComoPadrao(idEscolhido) {
     }
 }
 
-
 async function excluirEndereco(id) {
-
     const confirmar = confirm("Tem certeza que deseja excluir este endereço?");
     if (!confirmar) return;
 

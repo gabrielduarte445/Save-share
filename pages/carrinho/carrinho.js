@@ -1,8 +1,5 @@
 import { auth, db } from "../../public/firebase-config.js";
-
-import {
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { protegerPagina } from "../shared/guarda.js";
 
 import {
     doc,
@@ -16,7 +13,6 @@ import {
     addDoc
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-
 const listaElemento = document.getElementById("lista-itens");
 const resumoElemento = document.getElementById("resumo-carrinho");
 const valorTotalElemento = document.getElementById("valor-total");
@@ -29,25 +25,15 @@ const botaoTrocarEndereco = document.getElementById("btn-trocar-endereco");
 const botaoAddEndereco = document.getElementById("btn-add-endereco");
 
 let enderecoEscolhido = null;
-let usuarioAtual = null;
 let itensCarrinho = [];
 
+const { usuario } = await protegerPagina({ tipos: ["cliente"] });
+const usuarioAtual = usuario;
 
-onAuthStateChanged(auth, async (usuario) => {
-
-    if (!usuario) {
-        window.location.href = "login.html";
-        return;
-    }
-
-    usuarioAtual = usuario;
-    await carregarCarrinho();
-    await carregarEndereco();
-});
-
+await carregarCarrinho();
+await carregarEndereco();
 
 async function carregarCarrinho() {
-
     try {
         const refCarrinho = doc(db, "carrinhos", usuarioAtual.uid);
         const docCarrinho = await getDoc(refCarrinho);
@@ -62,9 +48,7 @@ async function carregarCarrinho() {
     }
 }
 
-
 function renderizarCarrinho() {
-
     if (itensCarrinho.length === 0) {
         listaElemento.innerHTML = `<p class="empty-message">Seu carrinho está vazio.</p>`;
         resumoElemento.style.display = "none";
@@ -75,7 +59,6 @@ function renderizarCarrinho() {
     listaElemento.innerHTML = "";
 
     itensCarrinho.forEach((item, index) => {
-
         if (item.selecionado === undefined) {
             item.selecionado = true;
         }
@@ -111,8 +94,8 @@ function renderizarCarrinho() {
     resumoElemento.style.display = "block";
     botaoFinalizar.style.display = "block";
 }
-async function carregarEndereco() {
 
+async function carregarEndereco() {
     try {
         const enderecosRef = collection(db, "enderecos");
         const consulta = query(enderecosRef, where("usuario_id", "==", usuarioAtual.uid));
@@ -137,7 +120,6 @@ async function carregarEndereco() {
     }
 }
 
-
 function mostrarComEndereco(endereco) {
     enderecoCheckout.style.display = "block";
     enderecoComElemento.style.display = "block";
@@ -147,7 +129,6 @@ function mostrarComEndereco(endereco) {
         `${endereco.logradouro}, ${endereco.numero} - ${endereco.bairro}, ${endereco.cidade}/${endereco.estado}`;
 }
 
-
 function mostrarSemEndereco() {
     enderecoCheckout.style.display = "block";
     enderecoComElemento.style.display = "none";
@@ -155,7 +136,6 @@ function mostrarSemEndereco() {
 
     enderecoEscolhido = null;
 }
-
 
 botaoAddEndereco.addEventListener("click", () => {
     window.location.href = "../public/cadastro_clienteendereco.html?retorno=checkout";
@@ -166,7 +146,6 @@ botaoTrocarEndereco.addEventListener("click", () => {
 });
 
 function atualizarTotal() {
-
     const total = itensCarrinho
         .filter((item) => item.selecionado)
         .reduce((soma, item) => soma + (item.preco * item.quantidade), 0);
@@ -177,9 +156,7 @@ function atualizarTotal() {
     botaoFinalizar.disabled = !algumSelecionado;
 }
 
-
 async function salvarCarrinho() {
-
     const refCarrinho = doc(db, "carrinhos", usuarioAtual.uid);
     await setDoc(refCarrinho, {
         itens: itensCarrinho,
@@ -187,9 +164,7 @@ async function salvarCarrinho() {
     });
 }
 
-
 async function alternarSelecao(index, selecionado) {
-
     itensCarrinho[index].selecionado = selecionado;
     atualizarTotal();
 
@@ -200,9 +175,7 @@ async function alternarSelecao(index, selecionado) {
     }
 }
 
-
 async function removerItem(index) {
-
     itensCarrinho.splice(index, 1);
 
     try {
@@ -214,9 +187,7 @@ async function removerItem(index) {
     }
 }
 
-
 botaoFinalizar.addEventListener("click", async () => {
-
     const itensSelecionados = itensCarrinho.filter((item) => item.selecionado);
 
     if (itensSelecionados.length === 0) {

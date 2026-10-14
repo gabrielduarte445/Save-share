@@ -1,10 +1,7 @@
 import { auth, db } from "../../public/firebase-config.js";
 import { mostrarToast } from "../shared/toast.js";
 import { gerarCodigo } from "../shared/codigo.js";
-
-import {
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { protegerPagina } from "../shared/guarda.js";
 
 import {
     doc,
@@ -25,17 +22,9 @@ let todosItensCarrinho = [];
 let itensSelecionados = [];
 let enderecoEscolhido = null;
 
-
-onAuthStateChanged(auth, async (usuario) => {
-
-    if (!usuario) {
-        window.location.href = "/public/login.html";
-        return;
-    }
-
-    usuarioAtual = usuario;
-    await carregarResumo();
-});
+const { usuario } = await protegerPagina({ tipos: ["cliente"] });
+usuarioAtual = usuario;
+await carregarResumo();
 
 
 async function carregarResumo() {

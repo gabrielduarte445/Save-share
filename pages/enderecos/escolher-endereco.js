@@ -1,8 +1,6 @@
 import { auth, db } from "../../public/firebase-config.js";
-import { mostrarToast, confirmarAcao } from "/pages/shared/toast.js";
-import {
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { mostrarToast, confirmarAcao } from "../shared/toast.js";
+import { protegerPagina } from "../shared/guarda.js";
 
 import {
     collection,
@@ -14,34 +12,23 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-
 const listaElemento = document.getElementById("lista-selecao");
 const botaoNovo = document.getElementById("btn-novo-endereco-checkout");
 const botaoConfirmar = document.getElementById("btn-confirmar-selecao");
 
-let usuarioAtual = null;
 let enderecoSelecionadoId = null;
 
+
+const { usuario } = await protegerPagina({ tipos: ["cliente"] });
+const usuarioAtual = usuario;
 
 botaoNovo.addEventListener("click", () => {
     window.location.href = "../../public/cadastro_clienteendereco.html?retorno=checkout";
 });
 
-
-onAuthStateChanged(auth, async (usuario) => {
-
-    if (!usuario) {
-        window.location.href = "/login.html";
-        return;
-    }
-
-    usuarioAtual = usuario;
-    await carregarEnderecos();
-});
-
+await carregarEnderecos();
 
 async function carregarEnderecos() {
-
     listaElemento.innerHTML = `<p class="empty-message">Carregando endereços...</p>`;
 
     try {
@@ -73,9 +60,7 @@ async function carregarEnderecos() {
     }
 }
 
-
 function criarCardSelecao(id, endereco) {
-
     const card = document.createElement("label");
     card.className = "endereco-card-selecao";
     card.dataset.id = id;
@@ -83,7 +68,7 @@ function criarCardSelecao(id, endereco) {
     card.innerHTML = `
         <input type="radio" name="endereco-selecao" value="${id}">
         <div class="endereco-texto">
-            <strong>${endereco.logradouro}, ${endereco.numero}</strong>
+            <strong>${endereco.logradouro}, ${endereco.numero}</strong><br>
             ${endereco.bairro} - ${endereco.cidade}/${endereco.estado}
         </div>
     `;
@@ -93,9 +78,7 @@ function criarCardSelecao(id, endereco) {
     return card;
 }
 
-
 function selecionarEndereco(id, card) {
-
     document.querySelectorAll(".endereco-card-selecao").forEach((elemento) => {
         elemento.classList.remove("selecionado");
         elemento.querySelector("input").checked = false;
@@ -108,11 +91,9 @@ function selecionarEndereco(id, card) {
     botaoConfirmar.disabled = false;
 }
 
-
 botaoConfirmar.addEventListener("click", async () => {
-
     if (!enderecoSelecionadoId) {
-        mostrarToast("Selecione um endereço antes de confirmar.","erro");
+        mostrarToast("Selecione um endereço antes de confirmar.", "erro");
         return;
     }
 
@@ -138,7 +119,7 @@ botaoConfirmar.addEventListener("click", async () => {
 
     } catch (erro) {
         console.error("Erro ao confirmar endereço:", erro);
-        mostrarToast("Não foi possível confirmar o endereço selecionado.","Erro");
+        mostrarToast("Não foi possível confirmar o endereço selecionado.", "Erro");
         botaoConfirmar.disabled = false;
         botaoConfirmar.textContent = "Confirmar";
     }

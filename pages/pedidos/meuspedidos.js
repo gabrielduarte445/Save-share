@@ -1,8 +1,5 @@
-import { auth, db } from "/public/firebase-config.js";
-
-import {
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { auth, db } from "../../public/firebase-config.js";
+import { protegerPagina } from "../shared/guarda";
 
 import {
     collection,
@@ -13,10 +10,7 @@ import {
     onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-
 const container = document.getElementById("pedidos-container");
-
-let usuarioAtual = null;
 
 const STATUS_INFO = {
     aguardando_confirmacao: { classe: "aguardando", texto: "Aguardando confirmação" },
@@ -28,25 +22,16 @@ const STATUS_INFO = {
 const cacheLojas = {};
 
 
-onAuthStateChanged(auth, (usuario) => {
+const { usuario } = await protegerPagina({ tipos: ["cliente"] });
+const usuarioAtual = usuario;
 
-    if (!usuario) {
-        window.location.href = "/public/login.html";
-        return;
-    }
-
-    usuarioAtual = usuario;
-    escutarPedidos();
-});
+escutarPedidos();
 
 
 function escutarPedidos() {
-
     const pedidosRef = collection(db, "pedidos");
-    const consulta = query(pedidosRef, where("cliente_id", "==", usuarioAtual.uid));
+    const consulta = query(pedidosRef, where("cliente_id", "===", usuarioAtual.uid));
 
-    // onSnapshot mantém uma conexão aberta: este bloco roda de novo,
-    // automaticamente, toda vez que qualquer pedido do cliente mudar.
     onSnapshot(consulta, async (resultado) => {
 
         if (resultado.empty) {
@@ -77,7 +62,6 @@ function escutarPedidos() {
 
 
 async function criarCardPedido(id, pedido) {
-
     const statusInfo = STATUS_INFO[pedido.status] || STATUS_INFO.aguardando_confirmacao;
 
     const dataFormatada = pedido.data_hora_pedido?.toDate
@@ -90,9 +74,9 @@ async function criarCardPedido(id, pedido) {
 
     if (!nomeLoja) {
         try {
-            const refComerciante = doc(db, "usuarios", pedido.comerciante_id);
-            const docComerciante = await getDoc(refComerciante);
-            nomeLoja = docComerciante.exists() ? (docComerciante.data().nome_loja || "Loja") : "Loja";
+            const refLoja = doc(db, "lojas", pedido.comerciante_id);
+            const docLoja = await getDoc(refLoja);
+            nomeLoja = docLoja.exists() ? (docLoja.data().nome_loja || "Loja") : "Loja";
         } catch {
             nomeLoja = "Loja";
         }

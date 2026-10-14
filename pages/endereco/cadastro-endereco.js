@@ -1,9 +1,5 @@
-import { auth, db } from "/public/firebase-config.js";
-
-import {
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-
+import { auth, db } from "../../public/firebase-config.js";
+import { protegerPagina } from "../shared/guarda.js";
 import {
     doc,
     getDoc,
@@ -12,7 +8,6 @@ import {
     updateDoc,
     collection
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-
 
 const formulario = document.getElementById("form-endereco");
 const botaoSalvar = document.getElementById("btn-salvar-endereco");
@@ -25,71 +20,49 @@ const campoCidade = document.getElementById("cidade");
 const campoEstado = document.getElementById("estado");
 const campoComplemento = document.getElementById("complemento");
 
-let usuarioAtual = null;
-let tipoUsuario = null;
-
 const parametros = new URLSearchParams(window.location.search);
 const idEnderecoParaEditar = parametros.get("id");
 
 
-onAuthStateChanged(auth, async (usuario) => {
+const { usuario, dados } = await protegerPagina({ tipos: ["cliente", "comerciante"] });
+const usuarioAtual = usuario;
+const tipoUsuario = dados.tipo_usuario;
 
-    if (!usuario) {
-        window.location.href = "/pages/login/login.html";
-        return;
-    }
-
-    usuarioAtual = usuario;
-
+if (tipoUsuario === "comerciante") {
     try {
-        const refUsuario = doc(db, "usuarios", usuario.uid);
-        const docUsuario = await getDoc(refUsuario);
-        if (docUsuario.exists()) {
-            tipoUsuario = docUsuario.data().tipo_usuario;
+        const refEnderecoComerciante = doc(db, "enderecos", usuarioAtual.uid);
+        const docEndereco = await getDoc(refEnderecoComerciante);
+        if (docEndereco.exists()) {
+            preencherFormulario(docEndereco.data());
+            botaoSalvar.textContent = "Atualizar Endereço";
         }
     } catch (erro) {
-        console.error("Erro ao verificar tipo de usuário:", erro);
+        console.error("Erro ao carregar endereço do comerciante:", erro);
     }
-
-    if (tipoUsuario === "comerciante") {
-        try {
-            const refEnderecoComerciante = doc(db, "enderecos", usuario.uid);
-            const docEndereco = await getDoc(refEnderecoComerciante);
-            if (docEndereco.exists()) {
-                preencherFormulario(docEndereco.data());
-                botaoSalvar.textContent = "Atualizar Endereço";
-            }
-        } catch (erro) {
-            console.error("Erro ao carregar endereço do comerciante:", erro);
-        }
-    }
-
-    if (tipoUsuario === "cliente" && idEnderecoParaEditar) {
-        try {
-            const refEndereco = doc(db, "enderecos", idEnderecoParaEditar);
-            const docEndereco = await getDoc(refEndereco);
-            if (docEndereco.exists()) {
-                preencherFormulario(docEndereco.data());
-                botaoSalvar.textContent = "Atualizar Endereço";
-            }
-        } catch (erro) {
-            console.error("Erro ao carregar endereço do cliente:", erro);
-        }
-    }
-
-});
-
-
-function preencherFormulario(dados) {
-    campoCep.value = dados.cep || "";
-    campoNumero.value = dados.numero || "";
-    campoRua.value = dados.logradouro || "";
-    campoBairro.value = dados.bairro || "";
-    campoCidade.value = dados.cidade || "";
-    campoEstado.value = dados.estado || "";
-    campoComplemento.value = dados.complemento || "";
 }
 
+if (tipoUsuario === "cliente" && idEnderecoParaEditar) {
+    try {
+        const refEndereco = doc(db, "enderecos", idEnderecoParaEditar);
+        const docEndereco = await getDoc(refEndereco);
+        if (docEndereco.exists()) {
+            preencherFormulario(docEndereco.data());
+            botaoSalvar.textContent = "Atualizar Endereço";
+        }
+    } catch (erro) {
+        console.error("Erro ao carregar endereço do cliente:", erro);
+    }
+}
+
+function preencherFormulario(dadosEnderecoForm) {
+    campoCep.value = dadosEnderecoForm.cep || "";
+    campoNumero.value = dadosEnderecoForm.numero || "";
+    campoRua.value = dadosEnderecoForm.logradouro || "";
+    campoBairro.value = dadosEnderecoForm.bairro || "";
+    campoCidade.value = dadosEnderecoForm.cidade || "";
+    campoEstado.value = dadosEnderecoForm.estado || "";
+    campoComplemento.value = dadosEnderecoForm.complemento || "";
+}
 
 formulario.addEventListener("submit", async (event) => {
     event.preventDefault();

@@ -1,9 +1,6 @@
-import { auth, db } from "/public/firebase-config.js";
-import { mostrarToast, confirmarAcao } from "/pages/shared/toast.js";
-import {
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-
+import { auth, db } from "../../public/firebase-config.js";
+import { mostrarToast, confirmarAcao } from "../shared/toast.js";
+import { protegerPagina } from "../shared/guarda.js";
 import {
     doc,
     setDoc,
@@ -14,53 +11,37 @@ import {
     getDocs
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-let usuarioLogado= null
 const nomeElemento = document.getElementById("user-name");
 const badgeElemento = document.getElementById("location-badge");
 const textoLocalizacao = document.getElementById("location-text");
+const containerProdutos = document.getElementById("products-container");
 
 const botaoMeusPedidos = document.getElementById("btn-meus-pedidos");
 const botaoPedidosRecebidos = document.getElementById("btn-pedidos-recebidos");
 const botaoMeusProdutos = document.getElementById("btn-meus-produtos");
 
-onAuthStateChanged(auth, async (usuario) => {
+const { usuario, dados } = await protegerPagina({ tipos: ["cliente", "comerciante"] });
+let usuarioLogado = usuario;
 
-    if (!usuario) {
-        window.location.href = "/public/login.html";
-        return;
-    }
+try {
+    if (dados) {
+        nomeElemento.textContent = dados.nome || "Usuário";
 
-    usuarioLogado= usuario;
-
-    // Nome do usuário + verificação de tipo
-    try {
-        const refUsuario = doc(db, "usuarios", usuario.uid);
-        const docUsuario = await getDoc(refUsuario);
-
-        if (docUsuario.exists()) {
-            const dadosUsuario = docUsuario.data();
-            nomeElemento.textContent = dadosUsuario.nome || "Usuário";
-
-            if (dadosUsuario.tipo_usuario === "comerciante") {
-                botaoMeusProdutos.style.display = "flex";
-            }
-            if (dadosUsuario.tipo_usuario === "comerciante") {
-                botaoMeusProdutos.style.display = "flex";
-                botaoPedidosRecebidos.style.display = "flex";
-            } else if (dadosUsuario.tipo_usuario === "cliente") {
-                botaoMeusPedidos.style.display = "flex";
-            }
-        } else {
-            nomeElemento.textContent = "Usuário";
+        if (dados.tipo_usuario === "comerciante") {
+            botaoMeusProdutos.style.display = "flex";
+            botaoPedidosRecebidos.style.display = "flex";
+        } else if (dados.tipo_usuario === "cliente") {
+            botaoMeusPedidos.style.display = "flex";
         }
-    } catch (erro) {
-        console.error("Erro ao buscar usuário:", erro);
+    } else {
         nomeElemento.textContent = "Usuário";
     }
-    const containerProdutos = document.getElementById("products-container");
-  
-async function adicionarAoCarrinho(produtoId, produto, quantidade) {
+} catch (erro) {
+    console.error("Erro ao processar dados do usuário:", erro);
+    nomeElemento.textContent = "Usuário";
+}
 
+async function adicionarAoCarrinho(produtoId, produto, quantidade) {
     try {
         const refCarrinho = doc(db, "carrinhos", usuarioLogado.uid);
         const docCarrinho = await getDoc(refCarrinho);
@@ -96,7 +77,6 @@ async function adicionarAoCarrinho(produtoId, produto, quantidade) {
 }
 
 async function carregarProdutosDisponiveis() {
-
     try {
         const produtosRef = collection(db, "produtos");
         const resultado = await getDocs(produtosRef);
@@ -108,7 +88,7 @@ async function carregarProdutosDisponiveis() {
 
         containerProdutos.innerHTML = "";
 
-        // Cache simples pra não buscar o mesmo comerciante várias vezes
+
         const cacheLojas = {};
 
         for (const docSnap of resultado.docs) {
@@ -116,15 +96,15 @@ async function carregarProdutosDisponiveis() {
 
             if (produto.estoque <= 0) continue;
 
-            // Busca o nome da loja (com cache)
+            // Busca o nome da loja na coleção pública "lojas" (conforme a Parte 2 das regras)
             let nomeLoja = cacheLojas[produto.comerciante_id];
 
             if (!nomeLoja) {
                 try {
-                    const refComerciante = doc(db, "usuarios", produto.comerciante_id);
-                    const docComerciante = await getDoc(refComerciante);
-                    nomeLoja = docComerciante.exists()
-                        ? (docComerciante.data().nome_loja || "Loja")
+                    const refLoja = doc(db, "lojas", produto.comerciante_id);
+                    const docLoja = await getDoc(refLoja);
+                    nomeLoja = docLoja.exists()
+                        ? (docLoja.data().nome_loja || "Loja")
                         : "Loja";
                 } catch {
                     nomeLoja = "Loja";
@@ -176,7 +156,7 @@ async function carregarProdutosDisponiveis() {
             });
 
             // Botão adicionar ao carrinho
-            card.querySelector(".btn-adicionar-carrinho").addEventListener("click",async () => {
+            card.querySelector(".btn-adicionar-carrinho").addEventListener("click", async () => {
                 const quantidade = parseInt(qtdValor.textContent);
                 await adicionarAoCarrinho(docSnap.id, produto, quantidade);
             });
@@ -193,45 +173,41 @@ async function carregarProdutosDisponiveis() {
         containerProdutos.innerHTML = `<p class="empty-message">Não foi possível carregar os produtos.</p>`;
     }
 }
-    await carregarProdutosDisponiveis();
 
-    // ENDEREÇO
+await carregarProdutosDisponiveis();
 
-    try {
-        const enderecosRef = collection(db, "enderecos");
-        const consultaEndereco = query(
-            enderecosRef,
-            where("usuario_id", "==", usuario.uid)
-        );
+// 5. ENDEREÇO
+try {
+    const enderecosRef = collection(db, "enderecos");
+    const consultaEndereco = query(
+        enderecosRef,
+        where("usuario_id", "==", usuarioLogado.uid)
+    );
 
-        const resultado = await getDocs(consultaEndereco);
+    const resultado = await getDocs(consultaEndereco);
 
-        if (resultado.empty) {
-            // REAÇÃO: nenhum endereço cadastrado
-            textoLocalizacao.textContent = "Adicionar endereço";
-            badgeElemento.style.cursor = "pointer";
-            badgeElemento.addEventListener("click", () => {
-                window.location.href = "../../public/cadastro_clienteendereco.html";
-            });
-
-        } else {
-            let enderecoDoc = resultado.docs.find((d) => d.data().padrao);
-            if (!enderecoDoc) {
-                enderecoDoc = resultado.docs[0];
-            }
-
-            const endereco = enderecoDoc.data();
-            textoLocalizacao.textContent =
-                `${endereco.logradouro || endereco.rua}, ${endereco.numero}`;
-
-            badgeElemento.style.cursor = "pointer";
-            badgeElemento.addEventListener("click", () => {
-                window.location.href = "/public/meus-enderecos.html";
-            });
+    if (resultado.empty) {
+        textoLocalizacao.textContent = "Adicionar endereço";
+        badgeElemento.style.cursor = "pointer";
+        badgeElemento.addEventListener("click", () => {
+            window.location.href = "../../public/cadastro_clienteendereco.html";
+        });
+    } else {
+        let enderecoDoc = resultado.docs.find((d) => d.data().padrao);
+        if (!enderecoDoc) {
+            enderecoDoc = resultado.docs[0];
         }
-    } catch (erro) {
-        console.error("Erro ao buscar endereço:", erro);
-        textoLocalizacao.textContent = "Erro ao carregar endereço";
-    }
 
-});
+        const endereco = enderecoDoc.data();
+        textoLocalizacao.textContent =
+            `${endereco.logradouro || endereco.rua}, ${endereco.numero}`;
+
+        badgeElemento.style.cursor = "pointer";
+        badgeElemento.addEventListener("click", () => {
+            window.location.href = "/public/meus-enderecos.html";
+        });
+    }
+} catch (erro) {
+    console.error("Erro ao buscar endereço:", erro);
+    textoLocalizacao.textContent = "Erro ao carregar endereço";
+}
