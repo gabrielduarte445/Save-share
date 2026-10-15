@@ -7,12 +7,21 @@
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
 }
 
+
 .home-header {
-    background-color: #217738;
+    background: #168548;
     padding: 20px 20px 24px 20px;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
     color: #ffffff;
+    transition: background 0.3s ease;
+}
+
+body.tema-comerciante .home-header {
+    background: linear-gradient(135deg, #1A1C1E 0%, #11572f 50%, #168548 100%);
+}
+body.tema-entregador .home-header {
+    background: linear-gradient(135deg, #1A1C1E 0%, #168548 60%, #2CCB5E 100%);
 }
 
 .header-top-row {
@@ -138,7 +147,6 @@
     display: none;
 }
 
-/* --- CATEGORIAS (Chips) --- */
 .categories-nav {
     display: flex;
     gap: 8px;
@@ -169,7 +177,6 @@
     color: #ffffff;
 }
 
-/* --- SEÇÃO DE PRODUTOS & CARDS (home) --- */
 .products-section {
     padding: 8px 20px 30px 20px;
 }
@@ -325,7 +332,7 @@
 .btn-adicionar-carrinho:hover {
     background-color: #1b5e20;
 }
-/* --- MEDIA QUERIES (home) --- */
+
 @media (min-width: 768px) {
     .home-header { padding: 24px 32px 28px 32px; }
     .products-section { padding: 16px 32px 40px 32px; }

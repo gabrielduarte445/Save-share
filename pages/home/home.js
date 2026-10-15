@@ -26,12 +26,22 @@ let usuarioLogado = usuario;
 try {
     if (dados) {
         nomeElemento.textContent = dados.nome || "Usuário";
+        document.body.classList.remove("tema-comerciante", "tema-entregador");
 
         if (dados.tipo_usuario === "comerciante") {
             botaoMeusProdutos.style.display = "flex";
             botaoPedidosRecebidos.style.display = "flex";
+            document.body.classList.add("tema-comerciante");
+
         } else if (dados.tipo_usuario === "cliente") {
             botaoMeusPedidos.style.display = "flex";
+
+        } else if (dados.tipo_usuario === "entregador") {
+            // Exemplo de botões visíveis para o entregador (se houver)
+            if (typeof botaoEntregas !== "undefined") {
+                botaoEntregas.style.display = "flex";
+            }
+            document.body.classList.add("tema-entregador");
         }
     } else {
         nomeElemento.textContent = "Usuário";
