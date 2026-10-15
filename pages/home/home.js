@@ -88,7 +88,6 @@ async function carregarProdutosDisponiveis() {
 
         containerProdutos.innerHTML = "";
 
-
         const cacheLojas = {};
 
         for (const docSnap of resultado.docs) {
@@ -96,7 +95,7 @@ async function carregarProdutosDisponiveis() {
 
             if (produto.estoque <= 0) continue;
 
-            // Busca o nome da loja na coleção pública "lojas" (conforme a Parte 2 das regras)
+            // Busca o nome da loja na coleção pública "lojas"
             let nomeLoja = cacheLojas[produto.comerciante_id];
 
             if (!nomeLoja) {
@@ -115,9 +114,10 @@ async function carregarProdutosDisponiveis() {
             const card = document.createElement("article");
             card.className = "product-card";
 
+            // 1. Primeiro insere o HTML base do card
             card.innerHTML = `
                 <div class="product-image-placeholder">
-                    <span>Imagem</span>
+                    <span>Sem imagem</span>
                 </div>
                 <div class="product-info">
                     <p class="product-title">${produto.nome}</p>
@@ -136,6 +136,14 @@ async function carregarProdutosDisponiveis() {
                     </button>
                 </div>
             `;
+            if (produto.imagem) {
+                const imgContainer = card.querySelector(".product-image-placeholder");
+                const img = document.createElement("img");
+                img.src = `data:image/jpeg;base64,${produto.imagem}`;
+                img.alt = produto.nome;
+                img.loading = "lazy";
+                imgContainer.replaceChildren(img);
+            }
 
             // Lógica do seletor de quantidade
             const qtdValor = card.querySelector(".qtd-valor");
