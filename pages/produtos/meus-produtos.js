@@ -1,6 +1,7 @@
 import { auth, db } from "../../public/firebase-config.js";
 import { protegerPagina } from "../shared/guarda.js";
 import { mostrarToast, confirmarAcao } from "../shared/toast.js";
+import { prepararImagem } from "../shared/imagem.js";
 
 import {
     collection,
@@ -36,6 +37,12 @@ const checkFuros = document.getElementById("check-furos");
 const checkOdor = document.getElementById("check-odor");
 const checkTextura = document.getElementById("check-textura");
 const checkConsumo = document.getElementById("check-consumo");
+
+const campoFoto = document.getElementById("produto-foto");
+const previewFoto = document.getElementById("preview-foto");
+const botaoRemoverFoto = document.getElementById("btn-remover-foto");
+
+let imagemAtual = null;   // base64 do JPEG, ou null
 
 let usuarioAtual = null;
 
@@ -111,18 +118,74 @@ function criarCardProduto(id, produto) {
         </div>
     `;
 
+    if (produto.imagem) {
+        const img = document.createElement("img");
+        img.src = `data:image/jpeg;base64,${produto.imagem}`;
+        img.alt = produto.nome;
+        img.loading = "lazy";
+        card.querySelector(".imagem-produto").replaceChildren(img);
+    }
+
     card.querySelector(".btn-editar").addEventListener("click", () => abrirModalEdicao(id, produto));
     card.querySelector(".btn-excluir").addEventListener("click", () => excluirProduto(id));
 
     return card;
 }
 
+function mostrarPreview(base64) {
 
+    previewFoto.replaceChildren();
+
+    if (base64) {
+        const img = document.createElement("img");
+        img.src = `data:image/jpeg;base64,${base64}`;
+        img.alt = "Prévia da foto do produto";
+        previewFoto.appendChild(img);
+        botaoRemoverFoto.style.display = "inline-block";
+    } else {
+        const texto = document.createElement("span");
+        texto.textContent = "Sem foto";
+        previewFoto.appendChild(texto);
+        botaoRemoverFoto.style.display = "none";
+    }
+}
+
+
+campoFoto.addEventListener("change", async () => {
+
+    const arquivo = campoFoto.files[0];
+    if (!arquivo) return;
+
+    try {
+        imagemAtual = await prepararImagem(arquivo);
+        mostrarPreview(imagemAtual);
+
+    } catch (erro) {
+        const mensagens = {
+            "tipo-invalido": "Use uma imagem JPG, PNG ou WebP.",
+            "arquivo-grande": "A imagem é muito grande (máximo de 10 MB).",
+            "imagem-invalida": "Não foi possível abrir essa imagem.",
+            "nao-reduziu": "Não foi possível reduzir essa imagem. Tente outra."
+        };
+        mostrarToast(mensagens[erro.message] || "Não foi possível usar essa imagem.", "erro");
+
+    } finally {
+        campoFoto.value = "";
+    }
+});
+
+
+botaoRemoverFoto.addEventListener("click", () => {
+    imagemAtual = null;
+    mostrarPreview(null);
+});
 
 function abrirModalNovo() {
     modalTitulo.textContent = "Adicionar Produto";
     campoId.value = "";
     formulario.reset();
+    imagemAtual = null;
+    mostrarPreview(null);
     modal.style.display = "flex";
 }
 
@@ -136,6 +199,9 @@ function abrirModalEdicao(id, produto) {
     campoDescricao.value = produto.descricao || "";
     campoValor.value = produto.valor || "";
     campoEstoque.value = produto.estoque || "";
+
+    imagemAtual = produto.imagem || null;
+    mostrarPreview(imagemAtual);
 
     if (produto.checklist_consumivel) {
         checkMofo.checked = !!produto.checklist_consumivel.sem_mofo;
@@ -152,6 +218,8 @@ function abrirModalEdicao(id, produto) {
 function fecharModal() {
     modal.style.display = "none";
     formulario.reset();
+    imagemAtual = null;
+    mostrarPreview(null);
 }
 
 
@@ -165,7 +233,6 @@ modal.addEventListener("click", (event) => {
 });
 
 
-
 formulario.addEventListener("submit", async (event) => {
 
     event.preventDefault();
@@ -177,7 +244,7 @@ formulario.addEventListener("submit", async (event) => {
     const idExistente = campoId.value;
 
     if (!nome || isNaN(valor) || valor < 0 || isNaN(estoque) || estoque < 0) {
-        mostrarToast("Preencha todos os campos corretamente.","erro");
+        mostrarToast("Preencha todos os campos corretamente.", "erro");
         return;
     }
 
@@ -189,7 +256,7 @@ formulario.addEventListener("submit", async (event) => {
         checkConsumo.checked;
 
     if (!checklistCompleto) {
-        mostrarToast("Confirme todos os itens da verificação de consumo antes de salvar.","erro");
+        mostrarToast("Confirme todos os itens da verificação de consumo antes de salvar.", "erro");
         return;
     }
 
@@ -199,6 +266,7 @@ formulario.addEventListener("submit", async (event) => {
         descricao: descricao,
         valor: valor,
         estoque: estoque,
+        imagem: imagemAtual,
         checklist_consumivel: {
             sem_mofo: checkMofo.checked,
             sem_furos: checkFuros.checked,
@@ -212,15 +280,14 @@ formulario.addEventListener("submit", async (event) => {
     botaoSalvar.textContent = "Salvando...";
 
     try {
-
         if (idExistente) {
-            const refProduto = doc(db, "produtos", idExistente);
-            await updateDoc(refProduto, dadosProduto);
-
+            const produtoRef = doc(db, "produtos", idExistente);
+            await updateDoc(produtoRef, dadosProduto);
+            mostrarToast("Produto atualizado com sucesso!", "sucesso");
         } else {
-            dadosProduto.data_cadastro = new Date();
             const produtosRef = collection(db, "produtos");
             await addDoc(produtosRef, dadosProduto);
+            mostrarToast("Produto cadastrado com sucesso!", "sucesso");
         }
 
         fecharModal();
@@ -228,26 +295,9 @@ formulario.addEventListener("submit", async (event) => {
 
     } catch (erro) {
         console.error("Erro ao salvar produto:", erro);
-        mostrarToast("Não foi possível salvar o produto. Tente novamente.","erro");
-
+        mostrarToast("Não foi possível salvar o produto.", "erro");
     } finally {
         botaoSalvar.disabled = false;
-        botaoSalvar.textContent = "Salvar Produto";
+        botaoSalvar.textContent = "Salvar";
     }
 });
-
-
-async function excluirProduto(id) {
-
-    const confirmar = await confirmarAcao("Tem certeza que deseja excluir este produto?");
-    if (!confirmar) return;
-
-    try {
-        await deleteDoc(doc(db, "produtos", id));
-        await carregarProdutos();
-
-    } catch (erro) {
-        console.error("Erro ao excluir produto:", erro);
-        mostrarToast("Não foi possível excluir o produto.", "erro");
-    }
-}

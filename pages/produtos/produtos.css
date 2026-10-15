@@ -66,6 +66,13 @@
     justify-content: center;
     color: #aaaaaa;
     font-size: 13px;
+    overflow: hidden;
+}
+
+.imagem-produto img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .informacoes-produto h3 {
@@ -126,14 +133,14 @@
     color: #d32f2f;
 }
 
-/* --- MODAL --- */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -171,4 +178,181 @@
     line-height: 1;
     cursor: pointer;
     color: #757575;
+}
+
+.foto-container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 6px;
+}
+
+.preview-foto {
+    width: 72px;
+    height: 72px;
+    border-radius: 12px;
+    background-color: #f8fafc;
+    border: 2px dashed #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-size: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.preview-foto img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.acoes-foto {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.btn-escolher-foto {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 14px;
+    background-color: #f1f5f9;
+    color: #334155;
+    font-weight: 600;
+    font-size: 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid #e2e8f0;
+    transition: all 0.15s ease;
+}
+
+.btn-escolher-foto:hover {
+    background-color: #e2e8f0;
+    color: #0f172a;
+}
+
+.btn-remover-foto {
+    background: none;
+    border: none;
+    color: #d32f2f;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 0;
+    cursor: pointer;
+}
+
+.btn-remover-foto:hover {
+    text-decoration: underline;
+}
+
+.form-grupo {
+    margin-bottom: 16px;
+}
+
+.form-grupo label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+}
+
+.input-container input {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: #0f172a;
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    outline: none;
+    box-sizing: border-box;
+    transition: all 0.15s ease;
+}
+
+.input-container input:focus {
+    border-color: #217738;
+    box-shadow: 0 0 0 3px rgba(33, 119, 56, 0.12);
+}
+
+.input-container input::placeholder {
+    color: #94a3b8;
+}
+
+.form-row {
+    display: flex;
+    gap: 12px;
+}
+
+.flex-1 {
+    flex: 1;
+}
+
+.checklist-consumivel {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.checklist-titulo {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 2px 0;
+}
+
+.checklist-descricao {
+    font-size: 12px;
+    color: #64748b;
+    margin: 0 0 12px 0;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: #334155;
+    cursor: pointer;
+    line-height: 1.4;
+}
+
+.checklist-item:last-child {
+    margin-bottom: 0;
+}
+
+.checklist-item input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #cbd5e1;
+    border-radius: 5px;
+    margin-top: 1px;
+    flex-shrink: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ffffff;
+    transition: all 0.15s ease;
+}
+
+.checklist-item input[type="checkbox"]:checked {
+    background-color: #217738;
+    border-color: #217738;
+}
+
+.checklist-item input[type="checkbox"]:checked::after {
+    content: "✓";
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: bold;
 }

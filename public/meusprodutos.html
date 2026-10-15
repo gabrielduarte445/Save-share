@@ -53,6 +53,20 @@
                 <input type="hidden" id="produto-id" value="">
 
                 <div class="form-grupo">
+                    <label>Foto do produto</label>
+                    <div class="foto-container">
+                        <div id="preview-foto" class="preview-foto">
+                            <span>Sem foto</span>
+                        </div>
+                        <div class="acoes-foto">
+                            <label for="produto-foto" class="btn-escolher-foto">Escolher foto</label>
+                            <input type="file" id="produto-foto" accept="image/jpeg,image/png,image/webp" hidden>
+                            <button type="button" id="btn-remover-foto" class="btn-remover-foto" style="display:none;">Remover foto</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-grupo">
                     <label for="produto-nome">Nome do produto</label>
                     <div class="input-container sem-icone">
                         <input type="text" id="produto-nome" name="nome" placeholder="Ex: Maçã fuji" required>
@@ -118,7 +132,6 @@
             </form>
 
         </div>
-    </div>
     </div>
 
     <script type="module" src="/pages/produtos/meus-produtos.js"></script>
