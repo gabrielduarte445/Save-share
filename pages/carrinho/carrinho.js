@@ -5,12 +5,10 @@ import {
     doc,
     getDoc,
     setDoc,
-    deleteDoc,
     collection,
     query,
     where,
-    getDocs,
-    addDoc
+    getDocs
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const listaElemento = document.getElementById("lista-itens");
@@ -63,7 +61,8 @@ function renderizarCarrinho() {
             item.selecionado = true;
         }
 
-        const subtotal = item.preco * item.quantidade;
+        const precoUnitario = Number(item.preco || item.valor || 0);
+        const subtotal = precoUnitario * item.quantidade;
 
         const linha = document.createElement("div");
         linha.className = "item-carrinho";
@@ -72,11 +71,11 @@ function renderizarCarrinho() {
 
             <div class="item-info">
                 <p class="item-nome">${item.nome}</p>
-                <p class="item-detalhe">Qtd: ${item.quantidade} × R$ ${item.preco.toFixed(2)}</p>
+                <p class="item-detalhe">Qtd: ${item.quantidade} × R$ ${precoUnitario.toFixed(2).replace(".", ",")}</p>
             </div>
 
             <div class="item-acoes">
-                <span class="item-subtotal">R$ ${subtotal.toFixed(2)}</span>
+                <span class="item-subtotal">R$ ${subtotal.toFixed(2).replace(".", ",")}</span>
                 <button type="button" class="btn-carrinho-excluir" data-index="${index}">Remover</button>
             </div>
         `;
@@ -85,7 +84,7 @@ function renderizarCarrinho() {
             alternarSelecao(index, evento.target.checked);
         });
 
-        linha.querySelector("button").addEventListener("click", () => removerItem(index));
+        linha.querySelector(".btn-carrinho-excluir").addEventListener("click", () => removerItem(index));
 
         listaElemento.appendChild(linha);
     });
@@ -125,8 +124,7 @@ function mostrarComEndereco(endereco) {
     enderecoComElemento.style.display = "block";
     enderecoSemElemento.style.display = "none";
 
-    enderecoSelecionadoTexto.textContent =
-        `${endereco.logradouro}, ${endereco.numero} - ${endereco.bairro}, ${endereco.cidade}/${endereco.estado}`;
+    enderecoSelecionadoTexto.textContent = `${endereco.logradouro}, ${endereco.numero} - ${endereco.bairro}, ${endereco.cidade}/${endereco.estado}`;
 }
 
 function mostrarSemEndereco() {
@@ -148,9 +146,12 @@ botaoTrocarEndereco.addEventListener("click", () => {
 function atualizarTotal() {
     const total = itensCarrinho
         .filter((item) => item.selecionado)
-        .reduce((soma, item) => soma + (item.preco * item.quantidade), 0);
+        .reduce((soma, item) => {
+            const preco = Number(item.preco || item.valor || 0);
+            return soma + (preco * item.quantidade);
+        }, 0);
 
-    valorTotalElemento.textContent = `R$ ${total.toFixed(2)}`;
+    valorTotalElemento.textContent = `R$ ${total.toFixed(2).replace(".", ",")}`;
 
     const algumSelecionado = itensCarrinho.some((item) => item.selecionado);
     botaoFinalizar.disabled = !algumSelecionado;
@@ -201,6 +202,6 @@ botaoFinalizar.addEventListener("click", async () => {
     }
 
     botaoFinalizar.disabled = true;
-    botaoFinalizar.textContent = "Enviando pedido...";
-    window.location.href = "../public/pagamento.html?retorno=checkout";
+    botaoFinalizar.textContent = "Redirecionando...";
+    window.location.href = "../public/pagamento.html";
 });

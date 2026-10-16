@@ -10,7 +10,7 @@ import {
     query,
     where,
     getDocs,
-    writeBatch
+    runTransaction
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 
@@ -74,26 +74,27 @@ function renderizarResumo() {
     let html = "";
 
     itensSelecionados.forEach((item) => {
-        const subtotal = item.preco * item.quantidade;
+        const preco = Number(item.preco || item.valor || 0);
+        const subtotal = preco * item.quantidade;
         html += `
             <div class="resumo-item">
                 <span>${item.quantidade}x ${item.nome}</span>
-                <span>R$ ${subtotal.toFixed(2)}</span>
+                <span>R$ ${subtotal.toFixed(2).replace(".", ",")}</span>
             </div>
         `;
     });
 
     const total = itensSelecionados.reduce(
-        (soma, item) => soma + (item.preco * item.quantidade), 0
+        (soma, item) => soma + (Number(item.preco || item.valor || 0) * item.quantidade), 0
     );
 
     html += `
         <div class="resumo-total">
             <span>Total</span>
-            <span>R$ ${total.toFixed(2)}</span>
+            <span>R$ ${total.toFixed(2).replace(".", ",")}</span>
         </div>
         <p class="resumo-endereco">
-             ${enderecoEscolhido.logradouro}, ${enderecoEscolhido.numero} - ${enderecoEscolhido.bairro}, ${enderecoEscolhido.cidade}/${enderecoEscolhido.estado}
+            ${enderecoEscolhido.logradouro}, ${enderecoEscolhido.numero} - ${enderecoEscolhido.bairro}, ${enderecoEscolhido.cidade}/${enderecoEscolhido.estado}
         </p>
     `;
 
@@ -108,63 +109,87 @@ botaoConfirmar.addEventListener("click", async () => {
         return;
     }
 
-    const formaPagamento = document.querySelector('input[name="forma_pagamento"]:checked').value;
+    const inputPagamento = document.querySelector('input[name="forma_pagamento"]:checked');
+    const formaPagamento = inputPagamento ? inputPagamento.value : "pix";
 
     botaoConfirmar.disabled = true;
     botaoConfirmar.textContent = "Processando...";
 
     try {
-
         const valorTotal = itensSelecionados.reduce(
-            (soma, item) => soma + (item.preco * item.quantidade), 0
+            (soma, item) => soma + (Number(item.preco || item.valor || 0) * item.quantidade), 0
         );
 
-        // ⚠️ LIMITAÇÃO CONHECIDA — REVISAR DEPOIS:
-        // Assumimos que todos os itens do carrinho são do MESMO comerciante.
-        // Solução futura: agrupar itensSelecionados por comerciante_id e criar
-        // um pedido para cada grupo (um por loja).
         const comercianteId = itensSelecionados[0].comerciante_id;
-
         const pedidoRef = doc(collection(db, "pedidos"));
         const refCarrinho = doc(db, "carrinhos", usuarioAtual.uid);
         const itensRestantes = todosItensCarrinho.filter((item) => !item.selecionado);
 
-        // Tudo em um único lote: ou grava tudo, ou não grava nada.
-        const lote = writeBatch(db);
+        
+        await runTransaction(db, async (transaction) => {
 
-        lote.set(pedidoRef, {
-            cliente_id: usuarioAtual.uid,
-            comerciante_id: comercianteId,
-            entregador_id: null,
-            itens: itensSelecionados,
-            endereco_id: enderecoEscolhido.id,
-            endereco_snapshot: {
-                logradouro: enderecoEscolhido.logradouro,
-                numero: enderecoEscolhido.numero,
-                bairro: enderecoEscolhido.bairro,
-                cidade: enderecoEscolhido.cidade,
-                estado: enderecoEscolhido.estado,
-                cep: enderecoEscolhido.cep
-            },
-            forma_pagamento: formaPagamento,
-            data_hora_pedido: new Date(),
-            valor_total: valorTotal,
-            tipo_entrega: "entrega",
-            status: "aguardando_confirmacao"
+        
+            const leiturasEstoque = await Promise.all(
+                itensSelecionados.map((item) => {
+                    const idProduto = item.produto_id || item.id;
+                    const refProd = doc(db, "produtos", idProduto);
+                    return transaction.get(refProd);
+                })
+            );
+            
+            leiturasEstoque.forEach((docSnap, idx) => {
+                const item = itensSelecionados[idx];
+                if (!docSnap.exists()) {
+                    throw new Error(`O produto "${item.nome}" não está mais disponível.`);
+                }
+                const estoqueAtual = docSnap.data().estoque || 0;
+                if (estoqueAtual < item.quantidade) {
+                    throw new Error(`Estoque insuficiente para "${item.nome}". Restantes: ${estoqueAtual}`);
+                }
+            });
+
+            // 3. ABATE DE ESTOQUE
+            leiturasEstoque.forEach((docSnap, idx) => {
+                const item = itensSelecionados[idx];
+                const refProd = docSnap.ref;
+                const novoEstoque = docSnap.data().estoque - item.quantidade;
+                transaction.update(refProd, { estoque: novoEstoque });
+            });
+
+            transaction.set(pedidoRef, {
+                cliente_id: usuarioAtual.uid,
+                comerciante_id: comercianteId,
+                entregador_id: null,
+                itens: itensSelecionados,
+                endereco_id: enderecoEscolhido.id,
+                endereco_snapshot: {
+                    logradouro: enderecoEscolhido.logradouro,
+                    numero: enderecoEscolhido.numero,
+                    bairro: enderecoEscolhido.bairro,
+                    cidade: enderecoEscolhido.cidade,
+                    estado: enderecoEscolhido.estado,
+                    cep: enderecoEscolhido.cep
+                },
+                forma_pagamento: formaPagamento,
+                data_hora_pedido: new Date(),
+                valor_total: valorTotal,
+                tipo_entrega: "entrega",
+                status: "aguardando_confirmacao"
+            });
+
+            // 5. CÓDIGO PRIVADO DO PEDIDO
+            const refCodigo = doc(db, "pedidos", pedidoRef.id, "privado", "codigo_entrega");
+            transaction.set(refCodigo, {
+                codigo: gerarCodigo()
+            });
+
+            // 6. ATUALIZAÇÃO DO CARRINHO
+            if (itensRestantes.length === 0) {
+                transaction.delete(refCarrinho);
+            } else {
+                transaction.set(refCarrinho, { itens: itensRestantes, atualizado_em: new Date() });
+            }
         });
-
-        // Código de entrega: só o cliente (dono) consegue lê-lo depois.
-        lote.set(doc(db, "pedidos", pedidoRef.id, "privado", "codigo_entrega"), {
-            codigo: gerarCodigo()
-        });
-
-        if (itensRestantes.length === 0) {
-            lote.delete(refCarrinho);
-        } else {
-            lote.set(refCarrinho, { itens: itensRestantes, atualizado_em: new Date() });
-        }
-
-        await lote.commit();
 
         mostrarToast("Pagamento confirmado! Seu pedido foi realizado.", "sucesso");
 
@@ -174,7 +199,7 @@ botaoConfirmar.addEventListener("click", async () => {
 
     } catch (erro) {
         console.error("Erro ao processar pagamento:", erro);
-        mostrarToast("Não foi possível processar o pagamento. Tente novamente.", "erro");
+        mostrarToast(erro.message || "Não foi possível processar o pagamento. Tente novamente.", "erro");
         botaoConfirmar.disabled = false;
         botaoConfirmar.textContent = "Confirmar Pagamento";
     }
