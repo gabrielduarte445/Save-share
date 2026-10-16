@@ -21,7 +21,6 @@ const STATUS_INFO = {
 
 const cacheLojas = {};
 
-
 const { usuario } = await protegerPagina({ tipos: ["cliente"] });
 const usuarioAtual = usuario;
 
@@ -30,7 +29,7 @@ escutarPedidos();
 
 function escutarPedidos() {
     const pedidosRef = collection(db, "pedidos");
-    const consulta = query(pedidosRef, where("cliente_id", "===", usuarioAtual.uid));
+    const consulta = query(pedidosRef, where("cliente_id", "==", usuarioAtual.uid));
 
     onSnapshot(consulta, async (resultado) => {
 
@@ -96,7 +95,7 @@ async function criarCardPedido(id, pedido) {
             <p><strong>Data:</strong> ${dataFormatada}</p>
             <p><strong>Itens:</strong> ${itensTexto}</p>
             <p><strong>Loja:</strong> ${nomeLoja}</p>
-            <p class="pedido-valor"><strong>Total:</strong> R$ ${Number(pedido.valor_total).toFixed(2)}</p>
+            <p class="pedido-valor"><strong>Total:</strong> R$ ${Number(pedido.valor_total).toFixed(2).replace(".", ",")}</p>
         </div>
 
         ${pedido.status === "entrega" ? `
@@ -106,7 +105,6 @@ async function criarCardPedido(id, pedido) {
         ` : ""}
     `;
 
-    // Busca o código de entrega (somente o cliente dono do pedido consegue ler)
     const elementoCodigo = card.querySelector(".valor-codigo-entrega");
     if (elementoCodigo) {
         getDoc(doc(db, "pedidos", id, "privado", "codigo_entrega"))

@@ -1,5 +1,5 @@
-import { auth, db } from "/public/firebase-config.js";
-import { mostrarToast } from "/pages/shared/toast.js";
+import { auth, db } from "../../public/firebase-config.js";
+import { mostrarToast } from "../shared/toast.js";
 
 import {
     onAuthStateChanged
@@ -59,13 +59,13 @@ function escutarDisponiveis() {
             const card = document.createElement("div");
             card.className = "card-pedido";
             card.innerHTML = `
-                <p class="pedido-valor">R$ ${Number(pedido.valor_total).toFixed(2)}</p>
+                <p class="pedido-valor">R$ ${Number(pedido.valor_total).toFixed(2).replace(".", ",")}</p>
                 <p class="pedido-endereco">
                     📍 ${pedido.endereco_snapshot.logradouro}, ${pedido.endereco_snapshot.numero} -
                     ${pedido.endereco_snapshot.bairro}, ${pedido.endereco_snapshot.cidade}/${pedido.endereco_snapshot.estado}
                 </p>
                 <p class="pedido-itens">${itensTexto}</p>
-                <input type="text" class="input-codigo" placeholder="${placeholder}" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false">
+                <input type="text" class="input-codigo" placeholder="Código do estabelecimento (6 dígitos)" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false">
                 <button type="button" class="btn-pegar-pedido">Confirmar retirada</button>
             `;
 
@@ -86,7 +86,7 @@ function escutarDisponiveis() {
 
 async function pegarPedido(pedidoId, codigoDigitado) {
 
-    if (!/^\d{6}$/.test(codigoDigitado)) {
+    if (!FORMATO_CODIGO.test(codigoDigitado)) {
         mostrarToast("Digite o código de 6 dígitos informado pelo estabelecimento.", "erro");
         return;
     }
@@ -133,18 +133,18 @@ function escutarMinhasEntregas() {
             const card = document.createElement("div");
             card.className = "card-pedido";
             card.innerHTML = `
-                <p class="pedido-valor">R$ ${Number(pedido.valor_total).toFixed(2)}</p>
+                <p class="pedido-valor">R$ ${Number(pedido.valor_total).toFixed(2).replace(".", ",")}</p>
                 <p class="pedido-endereco">
                     📍 ${pedido.endereco_snapshot.logradouro}, ${pedido.endereco_snapshot.numero} -
                     ${pedido.endereco_snapshot.bairro}, ${pedido.endereco_snapshot.cidade}/${pedido.endereco_snapshot.estado}
                 </p>
                 <p class="pedido-itens">${itensTexto}</p>
-                <input type="text" class="input-codigo" placeholder="Código do cliente (6 dígitos)" maxlength="6" inputmode="numeric">
+                <input type="text" class="input-codigo" placeholder="Código do cliente (6 dígitos)" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false">
                 <button type="button" class="btn-entregue">Confirmar entrega</button>
             `;
 
             card.querySelector(".btn-entregue").addEventListener("click", () => {
-                const codigoDigitado = card.querySelector(".input-codigo").value.trim();
+                const codigoDigitado = card.querySelector(".input-codigo").value.trim().toUpperCase();
                 concluirEntrega(docSnap.id, codigoDigitado);
             });
 
@@ -160,7 +160,7 @@ function escutarMinhasEntregas() {
 
 async function concluirEntrega(pedidoId, codigoDigitado) {
 
-    if (!/^\d{6}$/.test(codigoDigitado)) {
+    if (!FORMATO_CODIGO.test(codigoDigitado)) {
         mostrarToast("Digite o código de 6 dígitos informado pelo cliente.", "erro");
         return;
     }

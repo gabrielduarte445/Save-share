@@ -26,6 +26,8 @@ let usuarioLogado = usuario;
 try {
     if (dados) {
         nomeElemento.textContent = dados.nome || "Usuário";
+
+        // Limpa todos os temas antes de aplicar o novo
         document.body.classList.remove("tema-comerciante", "tema-entregador");
 
         if (dados.tipo_usuario === "comerciante") {
@@ -37,7 +39,6 @@ try {
             botaoMeusPedidos.style.display = "flex";
 
         } else if (dados.tipo_usuario === "entregador") {
-            // Exemplo de botões visíveis para o entregador (se houver)
             if (typeof botaoEntregas !== "undefined") {
                 botaoEntregas.style.display = "flex";
             }
