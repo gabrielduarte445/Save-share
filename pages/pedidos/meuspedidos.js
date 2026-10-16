@@ -1,5 +1,5 @@
 import { auth, db } from "../../public/firebase-config.js";
-import { protegerPagina } from "../shared/guarda";
+import { protegerPagina } from "../shared/guarda.js";
 
 import {
     collection,
