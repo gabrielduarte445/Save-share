@@ -1,63 +1,48 @@
+
 import { auth, db } from "../../public/firebase-config.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-import {
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-
-import {
-    doc,
-    getDoc,
-    setDoc
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-
-
-/**
- * Libera a página só para usuário logado (e, opcionalmente, de certos tipos).
- * Retorna { usuario, dados } quando liberado; caso contrário, redireciona.
- */
-export function protegerPagina({ tipos = null } = {}) {
-
+export function protegerPagina({ permitirAdmin = false } = {}) {
     return new Promise((resolve) => {
-
         onAuthStateChanged(auth, async (usuario) => {
-
             if (!usuario) {
-                window.location.replace("/public/login.html");
+                window.location.href = "/public/login.html";
                 return;
             }
 
-            let dados = null;
+            // 1. Força a verificação das claims de Administrador no Token JWT
+            const tokenResult = await usuario.getIdTokenResult();
+            const ehAdmin = tokenResult.claims.admin === true;
 
+            // Se a rota exige admin e o token confirma admin: true, libera o acesso imediatamente
+            if (permitirAdmin && ehAdmin) {
+                resolve({ usuario, ehAdmin: true });
+                return;
+            }
+
+            // 2. Para rotas normais ou fallback, busca o documento na coleção 'usuarios'
             try {
-                const snap = await getDoc(doc(db, "usuarios", usuario.uid));
-                dados = snap.exists() ? snap.data() : null;
-            } catch {
-                dados = null;
-            }
+                const docRef = doc(db, "usuarios", usuario.uid);
+                const docSnap = await getDoc(docRef);
 
-            if (!dados) {
-                window.location.replace("/public/login.html");
-                return;
-            }
+                if (!docSnap.exists() && !ehAdmin) {
+                    alert("Não encontramos seu cadastro. Fale com o suporte se o problema continuar.");
+                    window.location.href = "/public/login.html";
+                    return;
+                }
 
-            if (tipos && !tipos.includes(dados.tipo_usuario)) {
-                window.location.replace("/public/home.html");
-                return;
-            }
+                resolve({ usuario, dadosPerfil: docSnap.data() || {} });
 
-            // Mantém o nome da loja na coleção pública "lojas" (ver Parte 2)
-            if (dados.tipo_usuario === "comerciante" && dados.nome_loja
-                && !sessionStorage.getItem("loja_sincronizada")) {
-                try {
-                    await setDoc(doc(db, "lojas", usuario.uid), { nome_loja: dados.nome_loja });
-                    sessionStorage.setItem("loja_sincronizada", "1");
-                } catch {
-                    // sem problema, tenta de novo na próxima visita
+            } catch (erro) {
+                console.error("Erro ao validar permissões:", erro);
+                // Se for admin, não bloqueia em caso de falha de leitura no Firestore
+                if (ehAdmin) {
+                    resolve({ usuario, ehAdmin: true });
+                } else {
+                    window.location.href = "/public/login.html";
                 }
             }
-
-            document.documentElement.classList.remove("aguardando-auth");
-            resolve({ usuario, dados });
         });
     });
 }
