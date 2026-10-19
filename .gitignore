@@ -8,7 +8,8 @@ venv/
 public/env.js
 env.js
 .env
-
+admin/chave-privada-firebase.json
+chave-privada-firebase.json
 # Credencial privada do Firebase
 backend/firebase-service-account.json
 
