@@ -4,7 +4,9 @@ __pycache__/
 .venv/
 venv/
 
-# Variáveis de ambiente
+# Arquivos de ambiente e chaves privadas
+public/env.js
+env.js
 .env
 
 # Credencial privada do Firebase

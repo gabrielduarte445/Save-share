@@ -126,6 +126,22 @@
                         <input type="checkbox" name="check_consumo" id="check-consumo" required>
                         <span>Confirmo que o produto está próprio para consumo, apenas fora do padrão visual de mercado</span>
                     </label>
+
+                    <div class="form-grupo secao-inspecao">
+                        <label class="rotulo-inspecao">🔎 Mídias para Análise de Qualidade (Admin)</label>
+                        <p class="descricao-inspecao">Anexe fotos detalhadas ou um vídeo curto mostrando o estado real do lote.</p>
+
+                        <div class="inspecao-container">
+                            <label for="midias-inspecao" class="btn-escolher-inspecao">
+                                📹 Anexar Fotos / Vídeo do Lote
+                            </label>
+
+                            <!-- Aceita múltiplas imagens OU vídeos curtos -->
+                            <input type="file" id="midias-inspecao" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" multiple hidden>
+
+                            <div id="lista-previews-inspecao" class="grid-previews-inspecao"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <button type="submit" class="btn-entrar" id="btn-salvar-produto">Salvar Produto</button>

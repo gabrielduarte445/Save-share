@@ -1,0 +1,310 @@
+/* Layout Geral do Painel Admin */
+.cabecalho-admin {
+    background-color: #1a2e22;
+    color: #ffffff;
+    padding: 24px 20px;
+    border-bottom: 1px solid #233d2d;
+}
+
+.badge-admin {
+    display: inline-block;
+    background-color: rgba(44, 203, 94, 0.2);
+    color: #2ccb5e;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 6px;
+}
+
+.cabecalho-admin h1 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.cabecalho-admin p {
+    font-size: 13px;
+    color: #a3b8ac;
+    margin-top: 4px;
+}
+
+.main-moderacao {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.secao-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.secao-header h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+.contador-badge {
+    background-color: #f59e0b;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 12px;
+    padding: 2px 10px;
+    border-radius: 12px;
+}
+
+/* Grid de Cards Compacta */
+.grid-moderacao {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+@media (min-width: 768px) {
+    .grid-moderacao {
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    }
+}
+
+/* Card de Moderação */
+.card-moderacao {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Topo do Card (Capa Comercial + Info) */
+.card-topo {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.card-capa {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #f1f5f9;
+    flex-shrink: 0;
+}
+
+.foto-capa {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card-detalhes {
+    flex: 1;
+    min-width: 0;
+}
+
+.produto-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.produto-nome {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.produto-preco {
+    font-size: 14px;
+    font-weight: 700;
+    color: #168548;
+}
+
+.produto-descricao {
+    font-size: 12px;
+    color: #64748b;
+    margin: 4px 0 6px 0;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.loja-info {
+    font-size: 11px;
+    color: #475569;
+}
+
+.status-badge.pendente {
+    position: absolute;
+    bottom: 4px;
+    left: 4px;
+    font-size: 8px;
+    font-weight: 700;
+    padding: 2px 5px;
+    border-radius: 4px;
+    background-color: rgba(217, 119, 6, 0.9);
+    color: #ffffff;
+    text-transform: uppercase;
+}
+
+/* Seção de Mídias de Inspeção (Fotos/Vídeos do Lote) */
+.secao-inspecao-admin {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.secao-inspecao-admin h4 {
+    font-size: 11px;
+    font-weight: 700;
+    color: #334155;
+    margin: 0 0 8px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.grid-midias-inspecao {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+    gap: 8px;
+}
+
+.midia-item {
+    position: relative;
+    width: 100%;
+    height: 68px;
+    border-radius: 6px;
+    overflow: hidden;
+    background-color: #0f172a;
+    border: 1px solid #cbd5e1;
+    cursor: pointer;
+}
+
+.midia-item img, 
+.midia-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.tag-tipo {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    font-size: 8px;
+    font-weight: 700;
+    padding: 1px 4px;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #ffffff;
+}
+
+.sem-midia-aviso {
+    font-size: 11px;
+    color: #94a3b8;
+    margin: 0;
+    font-style: italic;
+}
+
+/* Resumo do Checklist */
+.checklist-resumo {
+    background-color: #ffffff;
+    border-left: 3px solid #168548;
+    padding: 6px 10px;
+}
+
+.checklist-resumo h4 {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #64748b;
+    margin: 0 0 4px 0;
+}
+
+.checklist-resumo ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+}
+
+.checklist-resumo li {
+    font-size: 10px;
+    color: #334155;
+    font-weight: 600;
+}
+.parecer-ia {
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+.parecer-ia.ia-ok {
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+}
+
+.parecer-ia.ia-alerta {
+    background-color: #fff1f2;
+    border: 1px solid #fecdd3;
+    color: #9f1239;
+}
+
+.ia-motivo {
+    font-size: 11px;
+    margin-top: 4px;
+    opacity: 0.9;
+}
+
+/* Botões de Ação */
+.card-acoes {
+    display: flex;
+    gap: 8px;
+    padding-top: 4px;
+}
+
+.card-acoes button {
+    flex: 1;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.15s ease;
+}
+
+.btn-aprovar {
+    background-color: #168548;
+    color: #ffffff;
+}
+
+.btn-rejeitar {
+    background-color: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.card-acoes button:hover {
+    opacity: 0.9;
+}

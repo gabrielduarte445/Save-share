@@ -93,6 +93,38 @@
     margin-top: 4px;
 }
 
+.status-badge-card {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 12px;
+    margin-bottom: 6px;
+    width: fit-content;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* Status: Pendente / Aguardando Aprovação */
+.status-badge-card.status-pendente {
+    background-color: #fef3c7;
+    color: #d97706;
+    border: 1px solid #fde68a;
+}
+
+/* Status: Aprovado */
+.status-badge-card.status-aprovado {
+    background-color: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+/* Status: Rejeitado */
+.status-badge-card.status-rejeitado {
+    background-color: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
 .estoque-disponivel {
     color: #2e7d32;
 }
