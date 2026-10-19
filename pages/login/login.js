@@ -40,10 +40,8 @@ if (botaoToggleSenha) {
 }
 
 function destinoDoTipo(tipo) {
-    const tipoNormalizado = (tipo || "").trim().toLowerCase();
-    if (tipoNormalizado === "admin") return "/admin/moderacao.html";
-    if (tipoNormalizado === "comerciante") return "/public/meusprodutos.html";
-    if (tipoNormalizado === "entregador") return "/public/pedidos_disponiveis.html";
+    if (tipo === "admin") return "/admin/moderacao.html";
+    if (tipo === "entregador") return "/public/pedidos_disponiveis.html";
     return "/public/home.html";
 }
 
@@ -72,7 +70,7 @@ if (botaoGoogle) {
             const resultado = await signInWithPopup(auth, new GoogleAuthProvider());
             const usuario = resultado.user;
 
-            // 1. Prioridade Absoluta: Claim JWT de Admin
+            // 1. Verifica primeiro se o usuário é Administrador pelas claims do token
             const tokenResult = await usuario.getIdTokenResult();
             if (tokenResult.claims.admin) {
                 window.location.href = "/admin/moderacao.html";
@@ -83,33 +81,33 @@ if (botaoGoogle) {
             const tipoRadio = document.querySelector('input[name="tipo_usuario"]:checked');
             const tipoEscolhido = tipoRadio ? tipoRadio.value : null;
 
-            if (snap.exists()) {
-                const tipoDaConta = (snap.data().tipo_usuario || "").trim().toLowerCase();
-                
-                // Se for Admin no Firestore
-                if (tipoDaConta === "admin") {
-                    window.location.href = "/admin/moderacao.html";
-                    return;
-                }
-
-                if (tipoDaConta !== tipoEscolhido) {
-                    mostrarErro(
-                        campoEmail,
-                        `Essa conta está cadastrada como "${tipoDaConta}". Selecione essa opção acima para entrar.`
-                    );
-                    return;
-                }
-
-                window.location.href = destinoDoTipo(tipoDaConta);
+            // Se for conta de Admin cadastrada no Firestore
+            if (snap.exists() && snap.data().tipo_usuario === "admin") {
+                window.location.href = "/admin/moderacao.html";
                 return;
             }
 
-            // Primeiro acesso
-            if (!tipoEscolhido) {
-                mostrarErro(campoEmail, "Selecione se você é Cliente, Comerciante ou Entregador.");
+            // Primeiro acesso de usuário comum sem cadastro no Firestore
+            if (!snap.exists()) {
+                if (!tipoEscolhido) {
+                    mostrarErro(campoEmail, "Selecione se você é Cliente, Comerciante ou Entregador.");
+                    return;
+                }
+                window.location.href = `/public/completar-cadastro.html?tipo=${encodeURIComponent(tipoEscolhido)}`;
                 return;
             }
-            window.location.href = `/public/completar-cadastro.html?tipo=${encodeURIComponent(tipoEscolhido)}`;
+
+            const tipoDaConta = snap.data().tipo_usuario;
+
+            if (tipoDaConta !== tipoEscolhido) {
+                mostrarErro(
+                    campoEmail,
+                    `Essa conta está cadastrada como "${tipoDaConta}". Selecione essa opção acima para entrar.`
+                );
+                return;
+            }
+
+            window.location.href = destinoDoTipo(tipoDaConta);
 
         } catch (erro) {
             console.error("Erro no login com Google:", erro);
@@ -208,14 +206,14 @@ if (formulario) {
             const resultado = await signInWithEmailAndPassword(auth, email, senha);
             const usuario = resultado.user;
 
-            // 1. CHECAGEM 1: CLAIM DE ADMIN NO TOKEN JWT (Sempre passa direto)
+            // 1. Valida se o usuário logado tem a Claim de Admin no Token JWT
             const tokenResult = await usuario.getIdTokenResult();
             if (tokenResult.claims.admin) {
                 window.location.href = "/admin/moderacao.html";
                 return;
             }
 
-            // 2. BUSCA NO FIRESTORE
+            // 2. Busca perfil do usuário no Firestore
             const referenciaUsuario = doc(db, "usuarios", usuario.uid);
             const documentoUsuario = await getDoc(referenciaUsuario);
 
@@ -225,15 +223,14 @@ if (formulario) {
             }
 
             const dadosUsuario = documentoUsuario.data();
-            const tipoDaConta = (dadosUsuario.tipo_usuario || "").trim().toLowerCase();
 
-            // 3. CHECAGEM 2: CAMPO ADMIN NO FIRESTORE (Limpo com .trim())
-            if (tipoDaConta === "admin") {
+            // Se for conta registrada como admin no Firestore
+            if (dadosUsuario.tipo_usuario === "admin") {
                 window.location.href = "/admin/moderacao.html";
                 return;
             }
 
-            // 4. APENAS USUÁRIOS COMUNS EXIGEM SELEÇÃO DOS BOTÕES
+            // 3. Para usuários normais, valida a escolha do botão do formulário
             const tipoRadio = document.querySelector('input[name="tipo_usuario"]:checked');
             if (!tipoRadio) {
                 mostrarErro(campoEmail, "Selecione se você é Cliente, Comerciante ou Entregador.");
@@ -242,15 +239,15 @@ if (formulario) {
 
             const tipoEscolhido = tipoRadio.value;
 
-            if (tipoDaConta !== tipoEscolhido) {
+            if (dadosUsuario.tipo_usuario !== tipoEscolhido) {
                 mostrarErro(
                     campoEmail,
-                    `Essa conta está cadastrada como "${tipoDaConta}". Selecione essa opção acima para entrar.`
+                    `Essa conta está cadastrada como "${dadosUsuario.tipo_usuario}". Selecione essa opção acima para entrar.`
                 );
                 return;
             }
 
-            window.location.href = destinoDoTipo(tipoDaConta);
+            window.location.href = destinoDoTipo(dadosUsuario.tipo_usuario);
 
         } catch (erro) {
             console.error("Erro no login:", erro);
