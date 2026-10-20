@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-br" class="aguardando-auth">
+<head>
+    <style>html.aguardando-auth body { visibility: hidden; }</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>admin | verificação de produtos</title>
+    <link rel="stylesheet" href="../base.css">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body class="body-app">
+<main class="adm-container">
+ 
+    <header class="adm-header">
+        <div>
+            <p class="adm-saudacao">Painel do administrador</p>
+            <h1 class="adm-titulo" id="adm-nome">...</h1>
+        </div>
+        <button type="button" class="adm-btn-sair" id="btn-sair">Sair</button>
+    </header>
+ 
+    <div class="adm-legado" id="adm-legado" hidden>
+        <p><strong id="adm-legado-qtd">0</strong> produto(s) cadastrado(s) antes da verificação, sem status.
+            Eles não aparecem para os clientes até serem aprovados.</p>
+        <button type="button" class="adm-btn adm-btn-neutro" id="btn-migrar-legado">Aprovar todos como legado</button>
+    </div>
+ 
+    <nav class="adm-abas" id="adm-abas">
+        <button type="button" class="adm-aba ativa" data-aba="pendente">Pendentes <span id="cont-pendente">0</span></button>
+        <button type="button" class="adm-aba" data-aba="aprovado">Aprovados <span id="cont-aprovado">0</span></button>
+        <button type="button" class="adm-aba" data-aba="reprovado">Reprovados <span id="cont-reprovado">0</span></button>
+        <button type="button" class="adm-aba" data-aba="ia">Desempenho da IA</button>
+    </nav>
+ 
+    <section class="adm-lista" id="adm-lista">
+        <p class="adm-vazio">Carregando...</p>
+    </section>
+ 
+</main>
+<script type="module" src="../admin/admin.js"></script>
+</body>
+</html>
+ 

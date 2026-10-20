@@ -1,4 +1,4 @@
-import { auth, db } from "/public/firebase-config.js";
+import { auth, db } from "../../public/firebase-config.js";
 
 import {
     signInWithEmailAndPassword,
@@ -39,10 +39,11 @@ botaoToggleSenha.addEventListener("click", () => {
         visivel ? "Mostrar senha" : "Ocultar senha"
     );
 });
+
 function destinoDoTipo(tipo) {
-    return tipo === "entregador"
-        ? "/public/pedidos-disponiveis.html"
-        : "/public/home.html";
+    if (tipo === "admin") return "../../admin/admin.html";
+    if (tipo === "entregador") return "../../public/pedidos_disponiveis.html";
+    return "../../public/home.html";
 }
 
 // A persistência é definida ANTES do clique: um await antes do popup
@@ -80,7 +81,12 @@ botaoGoogle.addEventListener("click", async () => {
             return;
         }
 
-        const tipoDaConta = snap.data().tipo_usuario;
+        const tipoDaConta = String(dadosUsuario.tipo_usuario || "").trim();
+
+        if (tipoDaConta === "admin") {
+            window.location.href = destinoDoTipo("admin");
+            return;
+        }
 
         if (tipoDaConta !== tipoEscolhido) {
             mostrarErro(
@@ -183,8 +189,6 @@ formulario.addEventListener("submit", async (event) => {
     }
 
     try {
-
-
         // LEMBRAR DE MIM
         const persistencia = checkboxLembrar.checked
             ? browserLocalPersistence
@@ -192,9 +196,7 @@ formulario.addEventListener("submit", async (event) => {
 
         await setPersistence(auth, persistencia);
 
-
         // LOGIN FIREBASE
-
         const resultado = await signInWithEmailAndPassword(auth, email, senha);
         const usuario = resultado.user;
 
@@ -208,22 +210,18 @@ formulario.addEventListener("submit", async (event) => {
 
         const dadosUsuario = documentoUsuario.data();
         const tipoEscolhido = document.querySelector('input[name="tipo_usuario"]:checked').value;
+        const tipoDaConta = dadosUsuario.tipo_usuario;
 
-        if (dadosUsuario.tipo_usuario !== tipoEscolhido) {
+        // Admin entra por qualquer opção selecionada
+        if (tipoDaConta !== "admin" && tipoDaConta !== tipoEscolhido) {
             mostrarErro(
                 campoEmail,
-                `Essa conta está cadastrada como "${dadosUsuario.tipo_usuario}". Selecione essa opção acima para entrar.`
+                `Essa conta está cadastrada como "${tipoDaConta}". Selecione essa opção acima para entrar.`
             );
             return;
         }
 
-        // REDIRECIONAMENTO POR TIPO DE USUÁRIO
-
-        if (dadosUsuario.tipo_usuario === "entregador") {
-            window.location.href = "../../public/pedidos_disponiveis.html";
-        } else {
-            window.location.href = "../../public/home.html";
-        }
+        window.location.href = destinoDoTipo(tipoDaConta);
 
     } catch (erro) {
 
@@ -254,7 +252,6 @@ formulario.addEventListener("submit", async (event) => {
             return;
         }
 
-        mostrarErro(campoEmail, "Algo deu errado ao entrar. Tente novamente em instantes.");
+        String(mostrarErro(campoEmail, "Algo deu errado ao entrar. Tente novamente em instantes."));
     }
-
 });

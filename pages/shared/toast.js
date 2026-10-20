@@ -34,24 +34,33 @@ export function mostrarToast(mensagem, tipo = "info", duracaoMs = 3500) {
     }, duracaoMs);
 }
 
-/**
- Versão "confirmação" — substitui o confirm() nativo.
- Retorna uma Promise<boolean>.
- */
-export function confirmarAcao(mensagem) {
+export function confirmarAcao(tituloOuMensagem, mensagemOpcional) {
+    const titulo = mensagemOpcional === undefined ? null : tituloOuMensagem;
+    const mensagem = mensagemOpcional === undefined ? tituloOuMensagem : mensagemOpcional;
+
     return new Promise((resolve) => {
 
         const overlay = document.createElement("div");
         overlay.className = "confirm-overlay";
         overlay.innerHTML = `
             <div class="confirm-caixa">
-                <p class="confirm-mensagem">${mensagem}</p>
+                <p class="confirm-titulo"></p>
+                <p class="confirm-mensagem"></p>
                 <div class="confirm-botoes">
                     <button type="button" class="confirm-btn confirm-cancelar">Cancelar</button>
                     <button type="button" class="confirm-btn confirm-confirmar">Confirmar</button>
                 </div>
             </div>
         `;
+
+        const elTitulo = overlay.querySelector(".confirm-titulo");
+        if (titulo) {
+            elTitulo.textContent = titulo;
+            elTitulo.style.fontWeight = "700";
+        } else {
+            elTitulo.remove();
+        }
+        overlay.querySelector(".confirm-mensagem").textContent = mensagem;
 
         document.body.appendChild(overlay);
         requestAnimationFrame(() => overlay.classList.add("confirm-visivel"));

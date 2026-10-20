@@ -1,0 +1,242 @@
+.adm-container {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding-bottom: 40px;
+}
+
+.adm-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: linear-gradient(135deg, #1A1C1E 0%, #11572f 50%, #168548 100%);
+    color: #ffffff;
+    padding: 20px;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+}
+
+.adm-saudacao { font-size: 13px; opacity: 0.9; }
+.adm-titulo { font-size: 20px; font-weight: 700; }
+
+.adm-btn-sair {
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    background: transparent;
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.adm-legado {
+    margin: 16px 20px 0;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    color: #5d4600;
+    font-size: 13px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.adm-abas {
+    display: flex;
+    gap: 8px;
+    padding: 16px 20px;
+    overflow-x: auto;
+}
+
+.adm-aba {
+    border: none;
+    background: #f2f3f5;
+    color: #444444;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.adm-aba span {
+    margin-left: 4px;
+    font-weight: 700;
+}
+
+.adm-aba.ativa {
+    background: #217738;
+    color: #ffffff;
+}
+
+.adm-lista {
+    padding: 0 20px;
+    display: grid;
+    gap: 16px;
+}
+
+.adm-vazio {
+    color: #757575;
+    text-align: center;
+    padding: 40px 0;
+}
+
+.adm-card {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    border: 1px solid #eaedf0;
+    border-radius: 16px;
+    padding: 16px;
+    background: #ffffff;
+}
+
+.adm-foto {
+    width: 100%;
+    height: 240px;
+    border-radius: 12px;
+    background: #f5f6f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: #888888;
+    font-size: 13px;
+}
+
+.adm-foto img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.adm-corpo h3 { font-size: 16px; color: #222222; }
+.adm-corpo h4 { font-size: 13px; margin: 14px 0 6px; color: #444444; }
+.adm-meta { font-size: 12px; color: #757575; margin: 2px 0 6px; }
+.adm-desc { font-size: 13px; color: #555555; }
+
+.adm-check { list-style: none; padding: 0; margin: 0; font-size: 13px; }
+.adm-check li.ok { color: #217738; }
+.adm-check li.falta { color: #d32f2f; font-weight: 700; }
+
+.adm-acoes { margin-top: 14px; display: grid; gap: 8px; }
+
+.adm-obs {
+    width: 100%;
+    min-height: 60px;
+    padding: 10px;
+    border: 1px solid #dddddd;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 13px;
+    box-sizing: border-box;
+    resize: vertical;
+}
+
+.adm-linha-botoes { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.adm-btn {
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #ffffff;
+}
+
+.adm-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.adm-btn-aprovar { background: #217738; }
+.adm-btn-reprovar { background: #d32f2f; }
+.adm-btn-ia { background: #3f51b5; }
+.adm-btn-neutro { background: #616161; }
+
+.adm-decisao { font-size: 13px; color: #444444; }
+
+/* Parecer da IA (também usado na tela do comerciante) */
+.ia-box {
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 13px;
+    border: 1px solid #e0e0e0;
+    background: #fafafa;
+}
+.ia-box ul { margin: 4px 0 0 18px; padding: 0; }
+.ia-titulo { font-weight: 700; }
+.ia-titulo small { font-weight: 400; color: #666666; }
+.ia-sub { font-weight: 700; margin-top: 8px; }
+.ia-rodape { margin-top: 8px; font-size: 11px; color: #757575; }
+.ia-vazio { font-size: 13px; color: #757575; }
+.ia-consumivel { background: #e8f5e9; border-color: #a5d6a7; }
+.ia-duvida { background: #fff8e1; border-color: #ffe082; }
+.ia-improprio, .ia-imagem_invalida { background: #ffebee; border-color: #ef9a9a; }
+
+/* Selo de status (tela do comerciante) */
+.selo-verificacao {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #ffffff;
+    background: #757575;
+}
+.selo-pendente { background: #f59e0b; }
+.selo-aprovado { background: #217738; }
+.selo-reprovado { background: #d32f2f; }
+
+/* Desempenho da IA */
+.adm-resumo-ia {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+}
+.adm-metrica {
+    border: 1px solid #eaedf0;
+    border-radius: 12px;
+    padding: 14px;
+    background: #ffffff;
+}
+.adm-metrica strong { display: block; font-size: 24px; color: #217738; }
+.adm-metrica span { font-size: 12px; color: #666666; }
+
+.adm-tabela {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    background: #ffffff;
+}
+.adm-tabela th, .adm-tabela td {
+    border: 1px solid #eaedf0;
+    padding: 8px 10px;
+    text-align: center;
+}
+.adm-tabela th:first-child, .adm-tabela td:first-child { text-align: left; }
+.adm-nota { font-size: 12px; color: #666666; margin-top: 8px; }
+
+@media (min-width: 768px) {
+    .adm-card { grid-template-columns: 280px 1fr; }
+    .adm-lista, .adm-abas { padding-left: 32px; padding-right: 32px; }
+    .adm-legado { margin-left: 32px; margin-right: 32px; }
+}
+
+/* Fotos do lote (aberto sob demanda) */
+.adm-inspecao-fotos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+}
+.adm-inspecao-fotos img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #eaedf0;
+}

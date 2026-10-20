@@ -40,7 +40,7 @@ export function protegerPagina({ tipos = null } = {}) {
                 return;
             }
 
-            if (tipos && !tipos.includes(dados.tipo_usuario)) {
+            if (tipos && !tipos.includes(String(dados.tipo_usuario || "").trim())) {
                 window.location.replace("/public/home.html");
                 return;
             }

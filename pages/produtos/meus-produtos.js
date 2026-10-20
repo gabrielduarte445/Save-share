@@ -1,19 +1,27 @@
-import { auth, db, storage } from "../../public/firebase-config.js";
+import { db } from "../../public/firebase-config.js";
 import { protegerPagina } from "../shared/guarda.js";
 import { mostrarToast, confirmarAcao } from "../shared/toast.js";
 import { prepararImagem } from "../shared/imagem.js";
+import { escaparHtml } from "../shared/html.js";
+import {
+    camposNovaSubmissao,
+    mudouConteudo,
+    parecerHtml,
+    LIMITE_IMAGEM_BASE64
+} from "../../servicos/verificacao.js";
 
-import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
 import {
     collection,
     doc,
-    addDoc,
     updateDoc,
-    deleteDoc,
+    writeBatch,
     query,
     where,
-    getDocs
+    getDocs,
+    serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const MAX_FOTOS_LOTE = 3;
 
 // ELEMENTOS DA DOM
 const listaProdutos = document.getElementById("lista-produtos");
@@ -40,34 +48,40 @@ const checkTextura = document.getElementById("check-textura");
 const checkConsumo = document.getElementById("check-consumo");
 const blocoChecklist = document.querySelector(".checklist-consumivel");
 
-// Capa da Vitrine
 const campoFoto = document.getElementById("produto-foto");
 const previewFoto = document.getElementById("preview-foto");
 const botaoRemoverFoto = document.getElementById("btn-remover-foto");
+const botaoChecarFoto = document.getElementById("btn-checar-foto");
+const caixaParecerIA = document.getElementById("caixa-parecer-ia");
 
-// Mídias de Inspeção (Fotos/Vídeos do Lote para o Admin)
 const campoMidiasInspecao = document.getElementById("midias-inspecao");
 const containerPreviewsInspecao = document.getElementById("lista-previews-inspecao");
 
-let arquivoFotoSelecionado = null;    // File da Capa da Vitrine
-let imagemAtualUrl = null;             // URL da Capa existente (edição)
-let arquivosInspecao = [];            // Array de Files para inspeção (Fotos/Vídeos)
+// Os checkboxes ficam escondidos na edição; sem isso o navegador bloqueia o
+// envio ("campo obrigatório não focável"). A validação é feita abaixo, em JS.
+formulario.noValidate = true;
+
+let capaBase64 = null;        // foto principal pronta (nova ou já salva)
+let inspecaoBase64 = [];      // novas fotos do lote (base64 reduzido)
+let produtoEmEdicao = null;
 let usuarioAtual = null;
 
-// PROTEÇÃO DE ROTA + CARREGAMENTO
 const { usuario } = await protegerPagina({ tipos: ["comerciante"] });
 usuarioAtual = usuario;
 
 await carregarProdutos();
 
-// BUSCAR PRODUTOS DO COMERCIANTE
+// ---------- LISTAGEM ----------
+
 async function carregarProdutos() {
     listaProdutos.innerHTML = `<p class="empty-message">Carregando produtos...</p>`;
     mensagemVazia.style.display = "none";
 
     try {
-        const produtosRef = collection(db, "produtos");
-        const consulta = query(produtosRef, where("comerciante_id", "==", usuarioAtual.uid));
+        const consulta = query(
+            collection(db, "produtos"),
+            where("comerciante_id", "==", usuarioAtual.uid)
+        );
         const resultado = await getDocs(consulta);
 
         if (resultado.empty) {
@@ -77,11 +91,9 @@ async function carregarProdutos() {
         }
 
         listaProdutos.innerHTML = "";
-        mensagemVazia.style.display = "none";
 
         resultado.docs.forEach((docSnap) => {
-            const card = criarCardProduto(docSnap.id, docSnap.data());
-            listaProdutos.appendChild(card);
+            listaProdutos.appendChild(criarCardProduto(docSnap.id, docSnap.data()));
         });
 
     } catch (erro) {
@@ -90,13 +102,19 @@ async function carregarProdutos() {
     }
 }
 
-// CRIAR CARD DO PRODUTO NA LISTA DO COMERCIANTE
+const TEXTO_STATUS = {
+    pendente: "⏳ Aguardando aprovação",
+    aprovado: "✓ Verificado",
+    reprovado: "✕ Reprovado",
+    legado: "Aguardando migração"
+};
+
 function criarCardProduto(id, produto) {
     const card = document.createElement("div");
     card.className = "card-produto";
 
     let classeEstoque = "estoque-disponivel";
-    let textoEstoque = `Estoque: ${produto.estoque} unidades`;
+    let textoEstoque = `Estoque: ${Number(produto.estoque) || 0} unidades`;
 
     if (produto.estoque === 0) {
         classeEstoque = "estoque-esgotado";
@@ -105,28 +123,28 @@ function criarCardProduto(id, produto) {
         classeEstoque = "estoque-baixo";
     }
 
-    const status = produto.status_verificacao || "aprovado";
-    const statusTexto = {
-        pendente: "⏳ Aguardando Aprovação",
-        aprovado: "✓ Aprovado",
-        rejeitado: "✕ Rejeitado"
-    };
+    const status = produto.status_verificacao || "legado";
 
     const valorFormatado = new Intl.NumberFormat("pt-BR", {
         style: "currency",
         currency: "BRL"
     }).format(produto.valor || 0);
 
+    const motivo = status === "reprovado" && produto.observacao_admin
+        ? `<p class="obs-reprovado">Motivo: ${escaparHtml(produto.observacao_admin)}</p>`
+        : "";
+
     card.innerHTML = `
         <div class="imagem-produto">
-            <span>Sem capa</span>
+            <span>Sem foto</span>
         </div>
 
         <div class="informacoes-produto">
-            <span class="status-badge-card status-${status}">${statusTexto[status]}</span>
-            <h3>${produto.nome}</h3>
-            <p class="preco">${valorFormatado}</p>
-            <p class="estoque ${classeEstoque}">${textoEstoque}</p>
+            <span class="status-badge-card status-${escaparHtml(status)}">${escaparHtml(TEXTO_STATUS[status] || status)}</span>
+            <h3>${escaparHtml(produto.nome)}</h3>
+            <p class="preco">${escaparHtml(valorFormatado)}</p>
+            <p class="estoque ${classeEstoque}">${escaparHtml(textoEstoque)}</p>
+            ${motivo}
         </div>
 
         <div class="acoes">
@@ -135,11 +153,9 @@ function criarCardProduto(id, produto) {
         </div>
     `;
 
-    // Renderiza a Capa da Vitrine
-    const urlFoto = produto.foto_url || (produto.imagem ? `data:image/jpeg;base64,${produto.imagem}` : null);
-    if (urlFoto) {
+    if (produto.imagem) {
         const img = document.createElement("img");
-        img.src = urlFoto;
+        img.src = `data:image/jpeg;base64,${produto.imagem}`;
         img.alt = produto.nome;
         img.loading = "lazy";
         card.querySelector(".imagem-produto").replaceChildren(img);
@@ -151,54 +167,27 @@ function criarCardProduto(id, produto) {
     return card;
 }
 
-// UPLOADS PARA O FIREBASE STORAGE
+// ---------- FOTO PRINCIPAL ----------
 
-// Upload da Capa Comercial
-async function uploadFotoCapa(arquivo) {
-    if (!arquivo) return null;
-    const caminhoRef = ref(storage, `produtos/${usuarioAtual.uid}/${Date.now()}_capa_${arquivo.name}`);
-    const snapshot = await uploadBytes(caminhoRef, arquivo);
-    return await getDownloadURL(snapshot.ref);
-}
-
-// Upload Múltiplo de Mídias para Análise do Admin (Fotos/Vídeos)
-async function uploadMidiasInspecao(arquivos) {
-    const mídiasEnviadas = [];
-    for (const arquivo of arquivos) {
-        const timestamp = Date.now();
-        const nomeLimpo = arquivo.name.replace(/[^a-zA-Z0-9.]/g, "_");
-        const caminhoRef = ref(storage, `inspecao/${usuarioAtual.uid}/${timestamp}_${nomeLimpo}`);
-        
-        const snapshot = await uploadBytes(caminhoRef, arquivo);
-        const url = await getDownloadURL(snapshot.ref);
-        
-        mídiasEnviadas.push({
-            url: url,
-            tipo: arquivo.type.startsWith("video/") ? "video" : "imagem",
-            nome: arquivo.name
-        });
-    }
-    return mídiasEnviadas;
-}
-
-// GERENCIAMENTO DAS PRÉVIAS
-
-// Prévia da Capa
-function mostrarPreviewCapa(src) {
+function mostrarPreviewCapa(base64) {
     previewFoto.replaceChildren();
 
-    if (src) {
+    if (base64) {
         const img = document.createElement("img");
-        img.src = src;
-        img.alt = "Prévia da capa";
+        img.src = `data:image/jpeg;base64,${base64}`;
+        img.alt = "Prévia da foto";
         previewFoto.appendChild(img);
         botaoRemoverFoto.style.display = "inline-block";
+        if (botaoChecarFoto) botaoChecarFoto.style.display = "inline-block";
     } else {
         const texto = document.createElement("span");
         texto.textContent = "Sem foto";
         previewFoto.appendChild(texto);
         botaoRemoverFoto.style.display = "none";
+        if (botaoChecarFoto) botaoChecarFoto.style.display = "none";
     }
+
+    if (caixaParecerIA) caixaParecerIA.innerHTML = "";
 }
 
 campoFoto.addEventListener("change", async () => {
@@ -206,60 +195,85 @@ campoFoto.addEventListener("change", async () => {
     if (!arquivo) return;
 
     try {
-        arquivoFotoSelecionado = arquivo;
-        const base64Preview = await prepararImagem(arquivo);
-        mostrarPreviewCapa(`data:image/jpeg;base64,${base64Preview}`);
+        const base64 = await prepararImagem(arquivo);
+
+        if (base64.length > LIMITE_IMAGEM_BASE64) {
+            mostrarToast("A foto ficou grande demais. Tente uma foto menor.", "erro");
+            return;
+        }
+
+        capaBase64 = base64;
+        mostrarPreviewCapa(capaBase64);
     } catch (erro) {
-        mostrarToast("Não foi possível carregar a foto de capa.", "erro");
-        arquivoFotoSelecionado = null;
+        console.error(erro);
+        mostrarToast("Não foi possível carregar a foto.", "erro");
     } finally {
         campoFoto.value = "";
     }
 });
 
 botaoRemoverFoto.addEventListener("click", () => {
-    arquivoFotoSelecionado = null;
-    imagemAtualUrl = null;
+    capaBase64 = null;
     mostrarPreviewCapa(null);
 });
 
-// Prévias das Mídias de Inspeção (Admin)
-if (campoMidiasInspecao) {
-    campoMidiasInspecao.addEventListener("change", () => {
-        const novosArquivos = Array.from(campoMidiasInspecao.files);
-        arquivosInspecao = [...arquivosInspecao, ...novosArquivos];
-        renderizarPreviewsInspecao();
-        campoMidiasInspecao.value = "";
+// Pré-checagem opcional: orienta o comerciante, não grava nada.
+// O parecer oficial é o que o admin gera na revisão.
+if (botaoChecarFoto) {
+    botaoChecarFoto.addEventListener("click", async () => {
+        if (!capaBase64) {
+            mostrarToast("Escolha a foto primeiro.", "erro");
+            return;
+        }
+
+        botaoChecarFoto.disabled = true;
+        botaoChecarFoto.textContent = "Analisando...";
+
+        try {
+            // import dinâmico: se a IA falhar, o resto da página continua funcionando
+            const { analisarProdutoComIA, mensagemErroIA } = await import("../shared/ia.js");
+
+            try {
+                const parecer = await analisarProdutoComIA({
+                    nome: campoNome.value,
+                    descricao: campoDescricao.value,
+                    imagemBase64: capaBase64
+                });
+                caixaParecerIA.innerHTML = parecerHtml(parecer);
+            } catch (erro) {
+                console.error(erro);
+                mostrarToast(mensagemErroIA(erro), "erro");
+            }
+        } catch (erro) {
+            console.error("Erro ao carregar o serviço de IA:", erro);
+            mostrarToast("O serviço de IA não está disponível agora.", "erro");
+        } finally {
+            botaoChecarFoto.disabled = false;
+            botaoChecarFoto.textContent = "Checar foto com IA";
+        }
     });
 }
 
+// ---------- FOTOS DO LOTE (para o admin) ----------
+
 function renderizarPreviewsInspecao() {
-    if (!containerPreviewsInspecao) return;
     containerPreviewsInspecao.replaceChildren();
 
-    arquivosInspecao.forEach((file, index) => {
+    inspecaoBase64.forEach((base64, index) => {
         const itemDiv = document.createElement("div");
         itemDiv.className = "preview-inspecao-item";
 
-        const urlTemp = URL.createObjectURL(file);
-
-        if (file.type.startsWith("video/")) {
-            const video = document.createElement("video");
-            video.src = urlTemp;
-            video.muted = true;
-            itemDiv.appendChild(video);
-        } else {
-            const img = document.createElement("img");
-            img.src = urlTemp;
-            itemDiv.appendChild(img);
-        }
+        const img = document.createElement("img");
+        img.src = `data:image/jpeg;base64,${base64}`;
+        img.alt = `Foto do lote ${index + 1}`;
+        itemDiv.appendChild(img);
 
         const btnRemover = document.createElement("button");
         btnRemover.type = "button";
         btnRemover.className = "btn-remover-inspecao";
-        btnRemover.innerHTML = "&times;";
+        btnRemover.textContent = "×";
         btnRemover.addEventListener("click", () => {
-            arquivosInspecao.splice(index, 1);
+            inspecaoBase64.splice(index, 1);
             renderizarPreviewsInspecao();
         });
 
@@ -268,49 +282,82 @@ function renderizarPreviewsInspecao() {
     });
 }
 
-// ABRIR / FECHAR MODAL
+campoMidiasInspecao.addEventListener("change", async () => {
+    const arquivos = Array.from(campoMidiasInspecao.files);
+    campoMidiasInspecao.value = "";
+
+    for (const arquivo of arquivos) {
+        if (!arquivo.type.startsWith("image/")) {
+            mostrarToast("Vídeos não são aceitos nesta versão. Envie fotos.", "erro");
+            continue;
+        }
+        if (inspecaoBase64.length >= MAX_FOTOS_LOTE) {
+            mostrarToast(`No máximo ${MAX_FOTOS_LOTE} fotos do lote.`, "erro");
+            break;
+        }
+
+        try {
+            const base64 = await prepararImagem(arquivo);
+            if (base64.length > LIMITE_IMAGEM_BASE64) {
+                mostrarToast("Uma das fotos ficou grande demais.", "erro");
+                continue;
+            }
+            inspecaoBase64.push(base64);
+        } catch (erro) {
+            console.error(erro);
+            mostrarToast("Não foi possível carregar uma das fotos.", "erro");
+        }
+    }
+
+    renderizarPreviewsInspecao();
+});
+
+// ---------- MODAL ----------
+
 function abrirModalNovo() {
     modalTitulo.textContent = "Adicionar Produto";
     campoId.value = "";
     formulario.reset();
-    
-    arquivoFotoSelecionado = null;
-    imagemAtualUrl = null;
-    arquivosInspecao = [];
-    
+
+    produtoEmEdicao = null;
+    capaBase64 = null;
+    inspecaoBase64 = [];
+
     mostrarPreviewCapa(null);
     renderizarPreviewsInspecao();
 
-    if (blocoChecklist) blocoChecklist.style.display = "block";
+    blocoChecklist.style.display = "block";
     modal.style.display = "flex";
 }
 
 function abrirModalEdicao(id, produto) {
     modalTitulo.textContent = "Editar Produto";
+    formulario.reset();
 
+    produtoEmEdicao = { id, ...produto };
     campoId.value = id;
     campoNome.value = produto.nome || "";
     campoDescricao.value = produto.descricao || "";
-    campoValor.value = produto.valor || "";
-    campoEstoque.value = produto.estoque || "";
+    campoValor.value = produto.valor ?? "";
+    campoEstoque.value = produto.estoque ?? "";
 
-    arquivoFotoSelecionado = null;
-    imagemAtualUrl = produto.foto_url || null;
-    arquivosInspecao = [];
+    capaBase64 = produto.imagem || null;
+    inspecaoBase64 = [];
 
-    mostrarPreviewCapa(imagemAtualUrl || (produto.imagem ? `data:image/jpeg;base64,${produto.imagem}` : null));
+    mostrarPreviewCapa(capaBase64);
     renderizarPreviewsInspecao();
 
-    if (blocoChecklist) blocoChecklist.style.display = "none";
+    // Produto antigo sem checklist precisa confirmar de novo para poder ser reenviado
+    blocoChecklist.style.display = produto.checklist_consumivel ? "none" : "block";
     modal.style.display = "flex";
 }
 
 function fecharModal() {
     modal.style.display = "none";
     formulario.reset();
-    arquivoFotoSelecionado = null;
-    imagemAtualUrl = null;
-    arquivosInspecao = [];
+    produtoEmEdicao = null;
+    capaBase64 = null;
+    inspecaoBase64 = [];
     mostrarPreviewCapa(null);
     renderizarPreviewsInspecao();
 }
@@ -319,7 +366,24 @@ botaoAdicionar.addEventListener("click", abrirModalNovo);
 botaoFecharModal.addEventListener("click", fecharModal);
 modal.addEventListener("click", (e) => { if (e.target === modal) fecharModal(); });
 
-// SUBMIT DO FORMULÁRIO DE PRODUTO
+// ---------- SALVAR ----------
+
+function checklistMarcado() {
+    return checkMofo.checked && checkFuros.checked && checkOdor.checked
+        && checkTextura.checked && checkConsumo.checked;
+}
+
+function montarChecklist() {
+    return {
+        confirmado_em: new Date().toISOString(),
+        sem_mofo: checkMofo.checked,
+        sem_furos: checkFuros.checked,
+        sem_odor: checkOdor.checked,
+        textura_ok: checkTextura.checked,
+        proprio_para_consumo: checkConsumo.checked
+    };
+}
+
 formulario.addEventListener("submit", async (event) => {
     event.preventDefault();
 
@@ -329,74 +393,96 @@ formulario.addEventListener("submit", async (event) => {
     const estoque = parseInt(campoEstoque.value, 10);
     const idExistente = campoId.value;
 
-    if (!nome || isNaN(valor) || valor < 0 || isNaN(estoque) || estoque < 0) {
-        mostrarToast("Preencha todos os campos corretamente.", "erro");
+    if (!nome || nome.length > 80 || isNaN(valor) || valor <= 0 || isNaN(estoque) || estoque < 0) {
+        mostrarToast("Preencha nome, preço maior que zero e estoque corretamente.", "erro");
         return;
     }
 
-    // Validação do Checklist e Mídias de Inspeção para novos cadastros
-    if (!idExistente) {
-        const checklistValido =
-            checkMofo.checked &&
-            checkFuros.checked &&
-            checkOdor.checked &&
-            checkTextura.checked &&
-            checkConsumo.checked;
+    if (!capaBase64) {
+        mostrarToast("A foto do produto é obrigatória.", "erro");
+        return;
+    }
 
-        if (!checklistValido) {
-            mostrarToast("Confirme todos os itens da verificação de consumo.", "erro");
-            return;
-        }
+    const precisaChecklist = !idExistente || !produtoEmEdicao?.checklist_consumivel;
 
-        if (arquivosInspecao.length === 0) {
-            mostrarToast("Anexe ao menos 1 foto ou vídeo do lote para análise do Admin.", "erro");
-            return;
-        }
+    if (precisaChecklist && !checklistMarcado()) {
+        mostrarToast("Confirme todos os itens da verificação de consumo.", "erro");
+        return;
+    }
+
+    if (!idExistente && inspecaoBase64.length === 0) {
+        mostrarToast("Anexe ao menos 1 foto do lote para a análise.", "erro");
+        return;
     }
 
     botaoSalvar.disabled = true;
-    botaoSalvar.textContent = "Enviando mídias e salvando...";
+    botaoSalvar.textContent = "Salvando...";
 
     try {
-        // 1. Upload da Capa (Vitrine do cliente)
-        let fotoCapaFinal = imagemAtualUrl;
-        if (arquivoFotoSelecionado) {
-            fotoCapaFinal = await uploadFotoCapa(arquivoFotoSelecionado);
-        }
-
-        // 2. Upload das Mídias de Inspeção (Exclusivas do Admin)
-        let midiasInspecaoFinal = [];
-        if (arquivosInspecao.length > 0) {
-            midiasInspecaoFinal = await uploadMidiasInspecao(arquivosInspecao);
-        }
-
-        const dadosProduto = {
-            comerciante_id: usuarioAtual.uid,
-            nome: nome,
-            descricao: descricao,
-            valor: valor,
-            estoque: estoque,
-            foto_url: fotoCapaFinal
-        };
+        const lote = writeBatch(db);
 
         if (!idExistente) {
-            dadosProduto.status_verificacao = "pendente";
-            dadosProduto.midias_inspecao = midiasInspecaoFinal;
-            dadosProduto.checklist_consumivel = {
-                confirmado_em: new Date().toISOString(),
-                sem_mofo: checkMofo.checked,
-                sem_furos: checkFuros.checked,
-                sem_odor: checkOdor.checked,
-                textura_ok: checkTextura.checked,
-                proprio_para_consumo: checkConsumo.checked
-            };
-            dadosProduto.criado_em = new Date().toISOString();
+            // Produto novo: sempre entra "pendente", sem parecer
+            const novoRef = doc(collection(db, "produtos"));
 
-            await addDoc(collection(db, "produtos"), dadosProduto);
-            mostrarToast("Produto e mídias de inspeção enviados para análise!", "sucesso");
+            lote.set(novoRef, {
+                comerciante_id: usuarioAtual.uid,
+                nome,
+                descricao,
+                valor,
+                estoque,
+                imagem: capaBase64,
+                checklist_consumivel: montarChecklist(),
+                criado_em: new Date().toISOString(),
+                ...camposNovaSubmissao()
+            });
+
+            inspecaoBase64.forEach((base64, ordem) => {
+                lote.set(doc(collection(novoRef, "inspecao")), {
+                    imagem: base64,
+                    ordem,
+                    criado_em: serverTimestamp()
+                });
+            });
+
+            await lote.commit();
+            mostrarToast("Produto enviado para análise!", "sucesso");
+
         } else {
-            await updateDoc(doc(db, "produtos", idExistente), dadosProduto);
-            mostrarToast("Produto atualizado com sucesso!", "sucesso");
+            const checklistFinal = precisaChecklist
+                ? montarChecklist()
+                : produtoEmEdicao.checklist_consumivel;
+
+            const novo = { nome, descricao, imagem: capaBase64, checklist_consumivel: checklistFinal };
+            const conteudoMudou = mudouConteudo(produtoEmEdicao, novo) || inspecaoBase64.length > 0;
+            const ref = doc(db, "produtos", idExistente);
+
+            if (conteudoMudou) {
+                // Mudou o que o admin avalia: volta para análise e zera o parecer
+                lote.update(ref, {
+                    ...novo,
+                    valor,
+                    estoque,
+                    atualizado_em: serverTimestamp(),
+                    ...camposNovaSubmissao()
+                });
+
+                inspecaoBase64.forEach((base64, ordem) => {
+                    lote.set(doc(collection(ref, "inspecao")), {
+                        imagem: base64,
+                        ordem,
+                        criado_em: serverTimestamp()
+                    });
+                });
+
+                await lote.commit();
+                mostrarToast("Produto atualizado e reenviado para análise.", "sucesso");
+
+            } else {
+                // Só preço e/ou estoque: mantém o status atual
+                await updateDoc(ref, { valor, estoque, atualizado_em: serverTimestamp() });
+                mostrarToast("Preço e estoque atualizados.", "sucesso");
+            }
         }
 
         fecharModal();
@@ -404,20 +490,30 @@ formulario.addEventListener("submit", async (event) => {
 
     } catch (erro) {
         console.error("Erro ao salvar produto:", erro);
-        mostrarToast("Não foi possível salvar o produto e suas mídias.", "erro");
+        mostrarToast("Não foi possível salvar o produto.", "erro");
     } finally {
         botaoSalvar.disabled = false;
         botaoSalvar.textContent = "Salvar Produto";
     }
 });
 
-// EXCLUSÃO DE PRODUTO
+// ---------- EXCLUSÃO ----------
+
 async function excluirProduto(id, nomeProduto) {
-    const confirmou = await confirmarAcao("Excluir Produto", `Deseja remover "${nomeProduto}"?`);
+    // confirmarAcao aceita (mensagem) ou (titulo, mensagem): ver toast.js novo
+    const confirmou = await confirmarAcao("Excluir produto", `Deseja remover "${nomeProduto}"?`);
     if (!confirmou) return;
 
     try {
-        await deleteDoc(doc(db, "produtos", id));
+        const lote = writeBatch(db);
+        const refProduto = doc(db, "produtos", id);
+
+        // O Firestore não apaga subcoleções sozinho
+        const fotos = await getDocs(collection(refProduto, "inspecao"));
+        fotos.forEach((f) => lote.delete(f.ref));
+        lote.delete(refProduto);
+
+        await lote.commit();
         mostrarToast("Produto excluído!", "sucesso");
         await carregarProdutos();
     } catch (erro) {
