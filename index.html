@@ -1,207 +1,198 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAVE-SHARE — Conectando você ao seu comércio local</title>
-    <link rel="stylesheet" href="base.css">
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(160deg, #217738 0%, #1b5e20 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .landing-card {
-            width: 100%;
-            max-width: 480px;
-            background-color: #ffffff;
-            border-radius: 24px;
-            padding: 48px 40px;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
-        }
-
-
-
-        h1 {
-            font-size: 28px;
-            font-weight: 800;
-            color: #1b1b1b;
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
-        }
-
-        h1 span {
-            color: #217738;
-        }
-
-        .subtitulo {
-            font-size: 15px;
-            color: #666666;
-            margin-bottom: 32px;
-            line-height: 1.5;
-        }
-
-        .features {
-            display: flex;
-            justify-content: center;
-            gap: 24px;
-            margin-bottom: 36px;
-            flex-wrap: wrap;
-        }
-
-        .feature {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            max-width: 110px;
-        }
-
-        .feature-icone {
-            width: 42px;
-            height: 42px;
-            background-color: #f1f8e9;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #217738;
-        }
-
-        .feature p {
-            font-size: 12px;
-            color: #757575;
-            font-weight: 600;
-        }
-
-        .botoes {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .btn-primario {
-            padding: 15px;
-            font-size: 15px;
-            font-weight: 700;
-            color: #ffffff;
-            background-color: #2e7d32;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: background-color 0.2s, transform 0.1s;
-        }
-
-        .btn-primario:hover {
-            background-color: #1b5e20;
-            transform: translateY(-1px);
-        }
-
-        .btn-secundario {
-            padding: 15px;
-            font-size: 15px;
-            font-weight: 700;
-            color: #217738;
-            background-color: #ffffff;
-            border: 1.5px solid #217738;
-            border-radius: 12px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: background-color 0.2s;
-        }
-
-        .btn-secundario:hover {
-            background-color: #f1f8e9;
-        }
-
-        .rodape {
-            margin-top: 28px;
-            font-size: 12px;
-            color: #aaaaaa;
-        }
-
-        @media (max-width: 480px) {
-            .landing-card {
-                padding: 36px 24px;
-            }
-
-            h1 {
-                font-size: 24px;
-            }
-
-            .features {
-                gap: 16px;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Save & Share — Reduza o desperdício, compartilhe oportunidades</title>
+<meta name="description" content="Aplicativo que conecta pequenos comerciantes e consumidores de Salvador para reduzir o desperdício de alimentos.">
+<link rel="icon" href="imagens/logo-circulo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="index.css">
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 21s-8-5.2-8-11a4.6 4.6 0 0 1 8-3 4.6 4.6 0 0 1 8 3c0 5.800-8 11-8 11z" fill="currentColor"/></symbol>
+    <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 19C5 9 11 4 20 4c0 9-5 15-14 15zM5 19l8-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-store" viewBox="0 0 24 24"><path d="M4 9l1.500-5h13L20 9M4 9v11h16V9M4 9c0 2 3 2 4 0 1 2 3 2 4 0 1 2 3 2 4 0 1 2 4 2 4 0M10 20v-5h4v5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6 7-11a7 7 0 0 0-14 0c0 5 7 11 7 11z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2.500" fill="currentColor"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8zM7.500 8.500h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.500" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2 20c0-4 3-6 7-6s7 2 7 6M16 4.500a3.500 3.500 0 0 1 0 7M18 14c2.500.7 4 2.500 4 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><path d="M3 6h18v12H3zM3 7l9 7 9-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-insta" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.500" cy="6.500" r="1.200" fill="currentColor"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-8z" fill="currentColor"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.800 5.800 6.200.9-4.500 4.400 1.100 6.200L12 17.400 6.400 20.300l1.100-6.200L3 9.700l6.200-.9z" fill="currentColor"/></symbol>
+  </defs>
+</svg>
 
-    <div class="landing-card">
-
-        <div class="logo-container">
-            <img class="logo-icon" src="img/logosaveeshare.jpg" alt="logosaveeshare">
-        </div>
-
-        <h1>SAVE<span>&</span>SHARE</h1>
-        <p class="subtitulo">
-            Conectando você ao comércio local. Descubra produtos frescos, apoie pequenos negócios e receba tudo com praticidade.
-        </p>
-
-        <div class="features">
-            <div class="feature">
-                <div class="feature-icone">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                        <circle cx="12" cy="10" r="3"/>
-                    </svg>
-                </div>
-                <p>Comércio local</p>
-            </div>
-
-            <div class="feature">
-                <div class="feature-icone">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="9" cy="21" r="1"></circle>
-                        <circle cx="20" cy="21" r="1"></circle>
-                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                    </svg>
-                </div>
-                <p>Compra fácil</p>
-            </div>
-
-            <div class="feature">
-                <div class="feature-icone">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                </div>
-                <p>Perto de você</p>
-            </div>
-        </div>
-
-        <div class="botoes">
-            <a href="public/login.html" class="btn-primario">Entrar</a>
-            <a href="public/cadastro.html" class="btn-secundario">Criar conta</a>
-        </div>
-
-        <p class="rodape">Projeto de TCC — SENAI Salvador</p>
-
+<header id="topo">
+  <div class="wrap bar">
+    <a href="#hero" class="brand"><img src="imagens/logo-circulo.png" alt="" width="38" height="38"><span>Save <b>&amp;</b> Share</span></a>
+    <nav id="menu" aria-label="Principal">
+      <a href="#hero">Início</a><a href="#sobre">Sobre</a><a href="#beneficios">Benefícios</a><a href="#jornada">Como funciona</a><a href="#impacto">Impacto</a><a href="#contato">Contato</a>
+      <div class="auth-m">
+        <button class="btn ghost" data-auth="login">Entrar</button>
+        <button class="btn gold" data-auth="cadastro">Cadastrar</button>
+      </div>
+    </nav>
+    <div class="auth" id="authBox">
+      <button class="btn ghost" data-auth="login">Entrar</button>
+      <button class="btn gold" data-auth="cadastro">Cadastrar</button>
     </div>
+    <button class="burger" id="burger" aria-label="Abrir menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  </div>
+</header>
 
+<main>
+<section id="hero">
+  <div class="orb o1"></div><div class="orb o2"></div>
+  <div class="wrap hero-grid">
+    <div class="glass hero-card">
+      <h1>Save <em>&amp;</em> Share</h1>
+      <h2 class="hero-sub">Reduza o desperdício,<br>compartilhe oportunidades</h2>
+      <p>Conectamos pequenos comerciantes e consumidores de Salvador para que alimentos bons, fora do padrão estético, ganhem um novo destino por um preço mais justo.</p>
+      <div class="cta-row">
+        <button class="btn gold lg" data-auth="cadastro">Criar minha conta <svg class="ic"><use href="#i-arrow"/></svg></button>
+        <button class="btn ghost lg" data-auth="login">Já tenho conta</button>
+      </div>
+    </div>
+    <figure class="hero-photo">
+      <img src="imagens/hero.jpg" alt="Comerciante sorrindo segurando uma caixa de legumes e verduras frescos" width="1000" height="978">
+      <figcaption class="float f1"><svg class="ic"><use href="#i-leaf"/></svg>Alimento bom, nada de lixo</figcaption>
+      <figcaption class="float f2"><svg class="ic"><use href="#i-pin"/></svg>Salvador · BA</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="sobre" class="sec">
+  <div class="wrap about">
+    <div class="about-img">
+      <img src="imagens/logo.jpg" alt="Logo do Save & Share: duas mãos formando um coração" width="512" height="511">
+      <div class="badge b1"><svg class="ic"><use href="#i-leaf"/></svg><strong>Menos descarte</strong></div>
+      <div class="badge b2"><svg class="ic"><use href="#i-store"/></svg><strong>Comércio local</strong></div>
+    </div>
+    <div class="glass about-card">
+      <h2 class="title left">Sobre o Save &amp; Share</h2>
+      <p>O SAVE &amp; SHARE é um aplicativo criado para combater o desperdício de alimentos em Salvador, conectando pequenos comerciantes a consumidores interessados em adquirir produtos fora dos padrões estéticos, mas ainda próprios para consumo.</p>
+      <div class="mini"><span class="chip"><svg class="ic"><use href="#i-heart"/></svg></span><div><h3>Nossa missão</h3><p>Reduzir perdas, fortalecer o comércio local e levar alimento de qualidade a preços mais acessíveis.</p></div></div>
+      <div class="mini"><span class="chip"><svg class="ic"><use href="#i-star"/></svg></span><div><h3>Nossa visão</h3><p>Uma cidade mais sustentável e inclusiva, onde nenhum alimento bom vai para o lixo.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="beneficios" class="sec alt">
+  <div class="wrap">
+    <h2 class="title">Benefícios</h2>
+    <div class="grid3">
+      <article class="glass card"><span class="chip big"><svg class="ic"><use href="#i-leaf"/></svg></span><h3>Redução do desperdício</h3><p>Dê um novo destino a alimentos que seriam descartados, contribuindo diretamente para a preservação do meio ambiente.</p></article>
+      <article class="glass card"><span class="chip big"><svg class="ic"><use href="#i-tag"/></svg></span><h3>Economia para todos</h3><p>Consumidores compram alimentos de qualidade por preços mais baixos, enquanto comerciantes reduzem prejuízos.</p></article>
+      <article class="glass card"><span class="chip big"><svg class="ic"><use href="#i-store"/></svg></span><h3>Fortalecimento local</h3><p>Incentive pequenos negócios e fortaleça a economia da sua comunidade de forma sustentável.</p></article>
+    </div>
+  </div>
+</section>
+
+<section id="jornada" class="sec">
+  <div class="wrap">
+    <h2 class="title">Como o Save &amp; Share funciona</h2>
+    <ol class="timeline" id="timeline">
+      <li><span class="node"><svg class="ic"><use href="#i-store"/></svg></span><div class="glass tl"><small>Passo 1</small><h3>O comerciante anuncia</h3><p>Cadastra os alimentos que sobraram ou fogem do padrão estético, com preço reduzido.</p></div></li>
+      <li><span class="node"><svg class="ic"><use href="#i-pin"/></svg></span><div class="glass tl"><small>Passo 2</small><h3>Você encontra perto de casa</h3><p>Veja as ofertas do seu bairro e escolha o que vale a pena salvar.</p></div></li>
+      <li><span class="node"><svg class="ic"><use href="#i-bag"/></svg></span><div class="glass tl"><small>Passo 3</small><h3>Reserve pelo app</h3><p>Garanta o seu item antes que acabe e combine a retirada com o comerciante.</p></div></li>
+      <li><span class="node"><svg class="ic"><use href="#i-heart"/></svg></span><div class="glass tl"><small>Passo 4</small><h3>Retire e economize</h3><p>Todo mundo sai ganhando: você, o comerciante e o meio ambiente.</p></div></li>
+    </ol>
+  </div>
+</section>
+
+<section id="impacto" class="sec alt">
+  <div class="wrap">
+    <h2 class="title">Nosso impacto</h2>
+    <p class="lead">Metas do projeto em Salvador</p>
+    <div class="grid4">
+      <div class="glass stat"><svg class="ic xl"><use href="#i-store"/></svg><b data-to="100" data-suf="+">0</b><span>Comerciantes parceiros</span></div>
+      <div class="glass stat"><svg class="ic xl"><use href="#i-users"/></svg><b data-to="1000" data-suf="+">0</b><span>Consumidores</span></div>
+      <div class="glass stat"><svg class="ic xl"><use href="#i-bag"/></svg><b data-to="5000" data-suf="+">0</b><span>Refeições resgatadas</span></div>
+      <div class="glass stat"><svg class="ic xl"><use href="#i-pin"/></svg><b data-to="10" data-suf="+">0</b><span>Bairros atendidos</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="participe" class="sec">
+  <div class="wrap">
+    <h2 class="title">Faça parte do Save &amp; Share</h2>
+    <div class="grid3">
+      <article class="glass card center"><span class="chip big round"><svg class="ic"><use href="#i-bag"/></svg></span><h3>Sou consumidor</h3><p>Compre bons alimentos por menos e ajude a reduzir o desperdício.</p><button class="btn gold" data-auth="cadastro" data-role="consumidor">Cadastrar como consumidor</button></article>
+      <article class="glass card center"><span class="chip big round"><svg class="ic"><use href="#i-store"/></svg></span><h3>Sou comerciante</h3><p>Dê destino ao que sobra, reduza prejuízos e conquiste novos clientes.</p><button class="btn gold" data-auth="cadastro" data-role="comerciante">Cadastrar meu comércio</button></article>
+      <article class="glass card center"><span class="chip big round"><svg class="ic"><use href="#i-heart"/></svg></span><h3>Quero apoiar</h3><p>Ajude a levar o projeto a mais bairros e a mais pessoas.</p><a class="btn ghost" href="#contato">Falar com a equipe</a></article>
+    </div>
+  </div>
+</section>
+
+<section id="contato" class="sec alt">
+  <div class="wrap">
+    <h2 class="title">Vamos conversar</h2>
+    <p class="lead">Tem interesse em participar ou saber mais sobre o projeto? Escreva para nós.</p>
+    <div class="contact">
+      <div class="info">
+        <div class="glass row"><span class="chip"><svg class="ic"><use href="#i-mail"/></svg></span><div><h3>Email</h3><p id="mailTxt">contato@saveshare.com.br</p></div><button class="round-btn" id="copyMail" aria-label="Copiar email"><svg class="ic"><use href="#i-copy"/></svg></button></div>
+        <div class="glass row"><span class="chip"><svg class="ic"><use href="#i-insta"/></svg></span><div><h3>Instagram</h3><p>@saveshare</p></div></div>
+        <div class="glass row"><span class="chip"><svg class="ic"><use href="#i-pin"/></svg></span><div><h3>Onde estamos</h3><p>Salvador, Bahia</p></div></div>
+      </div>
+      <form class="glass form" id="contactForm" novalidate>
+        <h3>Envie sua mensagem</h3>
+        <label>Nome<input name="nome" type="text" placeholder="Escreva seu nome" required autocomplete="name"></label>
+        <label>Email<input name="email" type="email" placeholder="Escreva seu email" required autocomplete="email"></label>
+        <label>Assunto<select name="assunto" required><option value="">Selecione</option><option>Quero participar como comerciante</option><option>Quero participar como consumidor</option><option>Parcerias e apoio</option><option>Outro assunto</option></select></label>
+        <label>Mensagem<textarea name="mensagem" rows="4" placeholder="Fale sobre você" required></textarea></label>
+        <button class="btn gold lg" type="submit">Enviar mensagem <svg class="ic"><use href="#i-send"/></svg></button>
+      </form>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div><a href="#hero" class="brand"><img src="imagens/logo-circulo.png" alt="" width="38" height="38"><span>Save <b>&amp;</b> Share</span></a><p>Conectando comerciantes e consumidores para um jardim de oportunidades sem desperdício.</p></div>
+    <div><h3>Links rápidos</h3><a href="#sobre">Sobre nós</a><a href="#jornada">Como funciona</a><a href="#impacto">Impacto</a><a href="#contato">Contato</a></div>
+    <div><h3>Conta</h3><button class="link" data-auth="login">Entrar</button><button class="link" data-auth="cadastro">Cadastrar</button></div>
+    <div><h3>Newsletter</h3><p>Receba novidades do projeto</p><form class="news" id="newsForm"><input type="email" placeholder="Seu email" aria-label="Seu email" required><button class="round-btn gold" aria-label="Assinar"><svg class="ic"><use href="#i-send"/></svg></button></form></div>
+  </div>
+  <p class="copy wrap">SAVE &amp; SHARE © <span id="ano">2026</span> · Desenvolvido para promover sustentabilidade e impacto social positivo em Salvador</p>
+</footer>
+
+<dialog id="authDlg" aria-labelledby="authTitle">
+  <button class="x" id="authClose" aria-label="Fechar"><svg class="ic"><use href="#i-x"/></svg></button>
+  <div class="tabs" role="tablist"><button role="tab" data-tab="login" aria-selected="true">Entrar</button><button role="tab" data-tab="cadastro" aria-selected="false">Cadastrar</button></div>
+  <h2 id="authTitle">Bem-vindo de volta</h2>
+  <form id="loginForm" novalidate>
+    <label>Email<input name="email" type="email" required autocomplete="email" placeholder="voce@email.com"></label>
+    <label>Senha<span class="pw"><input name="senha" type="password" required minlength="6" autocomplete="current-password" placeholder="Sua senha"><button type="button" class="eye" aria-label="Mostrar senha"><svg class="ic"><use href="#i-eye"/></svg></button></span></label>
+    <p class="err" role="alert"></p>
+    <button class="btn gold lg" type="submit">Entrar</button>
+    <p class="swap">Ainda não tem conta? <button type="button" class="link" data-tab="cadastro">Cadastre-se</button></p>
+  </form>
+  <form id="signForm" hidden novalidate>
+    <div class="role" role="radiogroup" aria-label="Tipo de conta">
+      <label><input type="radio" name="tipo" value="consumidor" checked><span>Sou consumidor</span></label>
+      <label><input type="radio" name="tipo" value="comerciante"><span>Sou comerciante</span></label>
+    </div>
+    <label>Nome<input name="nome" type="text" required autocomplete="name" placeholder="Seu nome"></label>
+    <label>Email<input name="email" type="email" required autocomplete="email" placeholder="voce@email.com"></label>
+    <label>Senha<span class="pw"><input name="senha" type="password" required minlength="6" autocomplete="new-password" placeholder="Mínimo de 6 caracteres"><button type="button" class="eye" aria-label="Mostrar senha"><svg class="ic"><use href="#i-eye"/></svg></button></span></label>
+    <p class="err" role="alert"></p>
+    <button class="btn gold lg" type="submit">Criar conta</button>
+    <p class="swap">Já tem conta? <button type="button" class="link" data-tab="login">Entrar</button></p>
+  </form>
+</dialog>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="index.js"></script>
 </body>
 </html>
