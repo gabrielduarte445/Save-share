@@ -38,13 +38,13 @@
     <nav id="menu" aria-label="Principal">
       <a href="#hero">Início</a><a href="#sobre">Sobre</a><a href="#beneficios">Benefícios</a><a href="#jornada">Como funciona</a><a href="#impacto">Impacto</a><a href="#contato">Contato</a>
       <div class="auth-m">
-        <button class="btn ghost" data-auth="login">Entrar</button>
-        <button class="btn gold" data-auth="cadastro">Cadastrar</button>
+        <a href="public/login.html" class="btn ghost">Entrar</a>
+        <a href="public/cadastro.html" class="btn gold">Cadastrar</a>
       </div>
     </nav>
     <div class="auth" id="authBox">
-      <button class="btn ghost" data-auth="login">Entrar</button>
-      <button class="btn gold" data-auth="cadastro">Cadastrar</button>
+      <a href="public/login.html" class="btn ghost">Entrar</a>
+      <a href="public/cadastro.html" class="btn gold">Cadastrar</a>
     </div>
     <button class="burger" id="burger" aria-label="Abrir menu" aria-expanded="false"><span></span><span></span><span></span></button>
   </div>
@@ -59,8 +59,8 @@
       <h2 class="hero-sub">Reduza o desperdício,<br>compartilhe oportunidades</h2>
       <p>Conectamos pequenos comerciantes e consumidores de Salvador para que alimentos bons, fora do padrão estético, ganhem um novo destino por um preço mais justo.</p>
       <div class="cta-row">
-        <button class="btn gold lg" data-auth="cadastro">Criar minha conta <svg class="ic"><use href="#i-arrow"/></svg></button>
-        <button class="btn ghost lg" data-auth="login">Já tenho conta</button>
+        <a href="public/cadastro.html" class="btn gold lg">Criar minha conta <svg class="ic"><use href="#i-arrow"/></svg></a>
+        <a href="public/login.html" class="btn ghost lg">Já tenho conta</a>
       </div>
     </div>
     <figure class="hero-photo">
@@ -74,7 +74,7 @@
 <section id="sobre" class="sec">
   <div class="wrap about">
     <div class="about-img">
-      <img src="imagens/logo.jpg" alt="Logo do Save & Share: duas mãos formando um coração" width="512" height="511">
+      <img src="imagens/logo.jpg" alt="Logo do Save & Share: duas mãos forming um coração" width="512" height="511">
       <div class="badge b1"><svg class="ic"><use href="#i-leaf"/></svg><strong>Menos descarte</strong></div>
       <div class="badge b2"><svg class="ic"><use href="#i-store"/></svg><strong>Comércio local</strong></div>
     </div>
@@ -127,8 +127,8 @@
   <div class="wrap">
     <h2 class="title">Faça parte do Save &amp; Share</h2>
     <div class="grid3">
-      <article class="glass card center"><span class="chip big round"><svg class="ic"><use href="#i-bag"/></svg></span><h3>Sou consumidor</h3><p>Compre bons alimentos por menos e ajude a reduzir o desperdício.</p><button class="btn gold" data-auth="cadastro" data-role="consumidor">Cadastrar como consumidor</button></article>
-      <article class="glass card center"><span class="chip big round"><svg class="ic"><use href="#i-store"/></svg></span><h3>Sou comerciante</h3><p>Dê destino ao que sobra, reduza prejuízos e conquiste novos clientes.</p><button class="btn gold" data-auth="cadastro" data-role="comerciante">Cadastrar meu comércio</button></article>
+      <article class="glass card center"><span class="chip big round"><svg class="ic"><use href="#i-bag"/></svg></span><h3>Sou consumidor</h3><p>Compre bons alimentos por menos e ajude a reduzir o desperdício.</p><a href="public/cadastro_cliente.html" class="btn gold">Cadastrar como consumidor</a></article>
+      <article class="glass card center"><span class="chip big round"><svg class="ic"><use href="#i-store"/></svg></span><h3>Sou comerciante</h3><p>Dê destino ao que sobra, reduza prejuízos e conquiste novos clientes.</p><a href="public/cadastro.html" class="btn gold">Cadastrar meu comércio</a></article>
       <article class="glass card center"><span class="chip big round"><svg class="ic"><use href="#i-heart"/></svg></span><h3>Quero apoiar</h3><p>Ajude a levar o projeto a mais bairros e a mais pessoas.</p><a class="btn ghost" href="#contato">Falar com a equipe</a></article>
     </div>
   </div>
@@ -161,36 +161,11 @@
   <div class="wrap foot">
     <div><a href="#hero" class="brand"><img src="imagens/logo-circulo.png" alt="" width="38" height="38"><span>Save <b>&amp;</b> Share</span></a><p>Conectando comerciantes e consumidores para um jardim de oportunidades sem desperdício.</p></div>
     <div><h3>Links rápidos</h3><a href="#sobre">Sobre nós</a><a href="#jornada">Como funciona</a><a href="#impacto">Impacto</a><a href="#contato">Contato</a></div>
-    <div><h3>Conta</h3><button class="link" data-auth="login">Entrar</button><button class="link" data-auth="cadastro">Cadastrar</button></div>
+    <div><h3>Conta</h3><a href="public/login.html" class="link">Entrar</a><a href="public/cadastro.html" class="link">Cadastrar</a></div>
     <div><h3>Newsletter</h3><p>Receba novidades do projeto</p><form class="news" id="newsForm"><input type="email" placeholder="Seu email" aria-label="Seu email" required><button class="round-btn gold" aria-label="Assinar"><svg class="ic"><use href="#i-send"/></svg></button></form></div>
   </div>
   <p class="copy wrap">SAVE &amp; SHARE © <span id="ano">2026</span> · Desenvolvido para promover sustentabilidade e impacto social positivo em Salvador</p>
 </footer>
-
-<dialog id="authDlg" aria-labelledby="authTitle">
-  <button class="x" id="authClose" aria-label="Fechar"><svg class="ic"><use href="#i-x"/></svg></button>
-  <div class="tabs" role="tablist"><button role="tab" data-tab="login" aria-selected="true">Entrar</button><button role="tab" data-tab="cadastro" aria-selected="false">Cadastrar</button></div>
-  <h2 id="authTitle">Bem-vindo de volta</h2>
-  <form id="loginForm" novalidate>
-    <label>Email<input name="email" type="email" required autocomplete="email" placeholder="voce@email.com"></label>
-    <label>Senha<span class="pw"><input name="senha" type="password" required minlength="6" autocomplete="current-password" placeholder="Sua senha"><button type="button" class="eye" aria-label="Mostrar senha"><svg class="ic"><use href="#i-eye"/></svg></button></span></label>
-    <p class="err" role="alert"></p>
-    <button class="btn gold lg" type="submit">Entrar</button>
-    <p class="swap">Ainda não tem conta? <button type="button" class="link" data-tab="cadastro">Cadastre-se</button></p>
-  </form>
-  <form id="signForm" hidden novalidate>
-    <div class="role" role="radiogroup" aria-label="Tipo de conta">
-      <label><input type="radio" name="tipo" value="consumidor" checked><span>Sou consumidor</span></label>
-      <label><input type="radio" name="tipo" value="comerciante"><span>Sou comerciante</span></label>
-    </div>
-    <label>Nome<input name="nome" type="text" required autocomplete="name" placeholder="Seu nome"></label>
-    <label>Email<input name="email" type="email" required autocomplete="email" placeholder="voce@email.com"></label>
-    <label>Senha<span class="pw"><input name="senha" type="password" required minlength="6" autocomplete="new-password" placeholder="Mínimo de 6 caracteres"><button type="button" class="eye" aria-label="Mostrar senha"><svg class="ic"><use href="#i-eye"/></svg></button></span></label>
-    <p class="err" role="alert"></p>
-    <button class="btn gold lg" type="submit">Criar conta</button>
-    <p class="swap">Já tem conta? <button type="button" class="link" data-tab="login">Entrar</button></p>
-  </form>
-</dialog>
 
 <div id="toast" role="status" aria-live="polite"></div>
 <script src="index.js"></script>

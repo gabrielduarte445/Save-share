@@ -21,9 +21,17 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
+// ---------- CONSTANTES E DICIONÁRIOS ----------
 const MAX_FOTOS_LOTE = 3;
 
-// ELEMENTOS DA DOM
+const TEXTO_STATUS = {
+    pendente: "⏳ Aguardando aprovação",
+    aprovado: "✓ Verificado",
+    reprovado: "✕ Reprovado",
+    legado: "Aguardando migração"
+};
+
+// ---------- ELEMENTOS DA DOM ----------
 const listaProdutos = document.getElementById("lista-produtos");
 const mensagemVazia = document.getElementById("mensagem-vazia");
 const botaoAdicionar = document.getElementById("btn-adicionar-produto");
@@ -57,25 +65,50 @@ const caixaParecerIA = document.getElementById("caixa-parecer-ia");
 const campoMidiasInspecao = document.getElementById("midias-inspecao");
 const containerPreviewsInspecao = document.getElementById("lista-previews-inspecao");
 
-// Os checkboxes ficam escondidos na edição; sem isso o navegador bloqueia o
-// envio ("campo obrigatório não focável"). A validação é feita abaixo, em JS.
 formulario.noValidate = true;
 
+// ---------- ESTADOS GLOBAIS ----------
 let capaBase64 = null;        // foto principal pronta (nova ou já salva)
 let inspecaoBase64 = [];      // novas fotos do lote (base64 reduzido)
 let produtoEmEdicao = null;
 let usuarioAtual = null;
+
+// Cache local dos produtos para consulta rápida na delegação de eventos
+let produtosCache = new Map();
 
 const { usuario } = await protegerPagina({ tipos: ["comerciante"] });
 usuarioAtual = usuario;
 
 await carregarProdutos();
 
-// ---------- LISTAGEM ----------
+// ---------- LISTAGEM E EVENTOS DE CARD ----------
+
+// Delegação de eventos no contêiner da lista
+listaProdutos.addEventListener("click", (e) => {
+    const botaoEditar = e.target.closest(".btn-editar");
+    const botaoExcluir = e.target.closest(".btn-excluir");
+
+    if (!botaoEditar && !botaoExcluir) return;
+
+    const card = e.target.closest(".card-produto");
+    if (!card) return;
+
+    const id = card.dataset.id;
+    const produto = produtosCache.get(id);
+
+    if (!produto) return;
+
+    if (botaoEditar) {
+        abrirModalEdicao(id, produto);
+    } else if (botaoExcluir) {
+        excluirProduto(id, produto.nome);
+    }
+});
 
 async function carregarProdutos() {
     listaProdutos.innerHTML = `<p class="empty-message">Carregando produtos...</p>`;
     mensagemVazia.style.display = "none";
+    produtosCache.clear();
 
     try {
         const consulta = query(
@@ -93,7 +126,9 @@ async function carregarProdutos() {
         listaProdutos.innerHTML = "";
 
         resultado.docs.forEach((docSnap) => {
-            listaProdutos.appendChild(criarCardProduto(docSnap.id, docSnap.data()));
+            const dados = docSnap.data();
+            produtosCache.set(docSnap.id, dados);
+            listaProdutos.appendChild(criarCardProduto(docSnap.id, dados));
         });
 
     } catch (erro) {
@@ -102,16 +137,10 @@ async function carregarProdutos() {
     }
 }
 
-const TEXTO_STATUS = {
-    pendente: "⏳ Aguardando aprovação",
-    aprovado: "✓ Verificado",
-    reprovado: "✕ Reprovado",
-    legado: "Aguardando migração"
-};
-
 function criarCardProduto(id, produto) {
     const card = document.createElement("div");
     card.className = "card-produto";
+    card.dataset.id = id;
 
     let classeEstoque = "estoque-disponivel";
     let textoEstoque = `Estoque: ${Number(produto.estoque) || 0} unidades`;
@@ -160,9 +189,6 @@ function criarCardProduto(id, produto) {
         img.loading = "lazy";
         card.querySelector(".imagem-produto").replaceChildren(img);
     }
-
-    card.querySelector(".btn-editar").addEventListener("click", () => abrirModalEdicao(id, produto));
-    card.querySelector(".btn-excluir").addEventListener("click", () => excluirProduto(id, produto.nome));
 
     return card;
 }
@@ -217,8 +243,7 @@ botaoRemoverFoto.addEventListener("click", () => {
     mostrarPreviewCapa(null);
 });
 
-// Pré-checagem opcional: orienta o comerciante, não grava nada.
-// O parecer oficial é o que o admin gera na revisão.
+// Pré-checagem opcional via IA
 if (botaoChecarFoto) {
     botaoChecarFoto.addEventListener("click", async () => {
         if (!capaBase64) {
@@ -230,7 +255,6 @@ if (botaoChecarFoto) {
         botaoChecarFoto.textContent = "Analisando...";
 
         try {
-            // import dinâmico: se a IA falhar, o resto da página continua funcionando
             const { analisarProdutoComIA, mensagemErroIA } = await import("../shared/ia.js");
 
             try {
@@ -347,8 +371,8 @@ function abrirModalEdicao(id, produto) {
     mostrarPreviewCapa(capaBase64);
     renderizarPreviewsInspecao();
 
-    // Produto antigo sem checklist precisa confirmar de novo para poder ser reenviado
-    blocoChecklist.style.display = produto.checklist_consumivel ? "none" : "block";
+    const temChecklist = Boolean(produto.checklist_consumivel);
+    blocoChecklist.style.display = temChecklist ? "none" : "block";
     modal.style.display = "flex";
 }
 
@@ -422,7 +446,6 @@ formulario.addEventListener("submit", async (event) => {
         const lote = writeBatch(db);
 
         if (!idExistente) {
-            // Produto novo: sempre entra "pendente", sem parecer
             const novoRef = doc(collection(db, "produtos"));
 
             lote.set(novoRef, {
@@ -458,7 +481,6 @@ formulario.addEventListener("submit", async (event) => {
             const ref = doc(db, "produtos", idExistente);
 
             if (conteudoMudou) {
-                // Mudou o que o admin avalia: volta para análise e zera o parecer
                 lote.update(ref, {
                     ...novo,
                     valor,
@@ -479,7 +501,6 @@ formulario.addEventListener("submit", async (event) => {
                 mostrarToast("Produto atualizado e reenviado para análise.", "sucesso");
 
             } else {
-                // Só preço e/ou estoque: mantém o status atual
                 await updateDoc(ref, { valor, estoque, atualizado_em: serverTimestamp() });
                 mostrarToast("Preço e estoque atualizados.", "sucesso");
             }
@@ -500,16 +521,15 @@ formulario.addEventListener("submit", async (event) => {
 // ---------- EXCLUSÃO ----------
 
 async function excluirProduto(id, nomeProduto) {
-    // confirmarAcao aceita (mensagem) ou (titulo, mensagem): ver toast.js novo
     const confirmou = await confirmarAcao("Excluir produto", `Deseja remover "${nomeProduto}"?`);
     if (!confirmou) return;
 
     try {
-        const lote = writeBatch(db);
         const refProduto = doc(db, "produtos", id);
-
-        // O Firestore não apaga subcoleções sozinho
         const fotos = await getDocs(collection(refProduto, "inspecao"));
+
+        const lote = writeBatch(db);
+
         fotos.forEach((f) => lote.delete(f.ref));
         lote.delete(refProduto);
 

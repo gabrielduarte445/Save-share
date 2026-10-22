@@ -284,6 +284,131 @@
     margin-bottom: 16px;
 }
 
+/* Container Principal da Seção de Inspeção */
+.secao-inspecao {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Rótulo da Seção */
+.rotulo-inspecao {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #2d3748;
+    display: block;
+}
+
+/* Descrição Auxiliar */
+.descricao-inspecao {
+    font-size: 0.85rem;
+    color: #4a5568;
+    line-height: 1.4;
+    margin: 0 0 12px 0;
+}
+
+/* Contêiner de Ações e Prévia */
+.inspecao-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Botão Customizado para Anexar Fotos */
+.btn-escolher-inspecao {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background-color: #ffffff;
+    color: #2e7d32;
+    border: 2px dashed #a5d6a7;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    width: fit-content;
+    user-select: none;
+}
+
+.btn-escolher-inspecao:hover {
+    background-color: #f1f8e9;
+    border-color: #2e7d32;
+}
+
+.btn-escolher-inspecao:active {
+    transform: scale(0.98);
+}
+
+/* Grid de Previews das Fotos */
+.grid-previews-inspecao {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: 100%;
+}
+
+/* Item de Preview Renderizado pelo JS */
+.preview-inspecao-item {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    background-color: #f8fafc;
+}
+
+.preview-inspecao-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Botão de Remover (×) Sobreposto no Card da Imagem */
+.btn-remover-inspecao {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 24px;
+    height: 24px;
+    background-color: rgba(0, 0, 0, 0.65);
+    color: #ffffff;
+    border: none;
+    border-radius: 50%;
+    font-size: 16px;
+    font-weight: bold;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn-remover-inspecao:hover {
+    background-color: #d32f2f;
+    transform: scale(1.1);
+}
+
+/* RESPONSIVIDADE (Telas menores/Smartphones) */
+@media (max-width: 480px) {
+    .btn-escolher-inspecao {
+        width: 100%; /* Botão ocupa largura total no mobile para facilitar o toque */
+    }
+
+    .grid-previews-inspecao {
+        grid-template-columns: repeat(3, 1fr); /* Mantém 3 colunas em tela pequena ou ajusta se necessário */
+        gap: 8px;
+    }
+}
+
 .form-grupo label {
     display: block;
     font-size: 13px;
