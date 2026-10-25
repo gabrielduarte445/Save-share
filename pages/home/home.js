@@ -20,6 +20,19 @@ const botaoMeusPedidos = document.getElementById("btn-meus-pedidos");
 const botaoPedidosRecebidos = document.getElementById("btn-pedidos-recebidos");
 const botaoMeusProdutos = document.getElementById("btn-meus-produtos");
 
+// Elementos do Modal
+const modal = document.getElementById("modal-carrinho");
+const modalFechar = document.getElementById("modal-close");
+const modalNome = document.getElementById("modal-produto-nome");
+const modalPreco = document.getElementById("modal-produto-preco");
+const modalQtd = document.getElementById("modal-qtd-valor");
+const btnModalDiminuir = document.getElementById("btn-modal-diminuir");
+const btnModalAumentar = document.getElementById("btn-modal-aumentar");
+const btnModalConfirmar = document.getElementById("btn-modal-confirmar");
+
+let produtoSelecionado = null;
+let quantidadeSelecionada = 1;
+
 const { usuario, dados } = await protegerPagina({ tipos: ["cliente", "comerciante"] });
 let usuarioLogado = usuario;
 
@@ -27,7 +40,6 @@ try {
     if (dados) {
         nomeElemento.textContent = dados.nome || "Usuário";
 
-        // Limpa todos os temas antes de aplicar o novo
         document.body.classList.remove("tema-comerciante", "tema-entregador");
 
         if (dados.tipo_usuario === "comerciante") {
@@ -51,6 +63,68 @@ try {
     console.error("Erro ao processar dados do usuário:", erro);
     nomeElemento.textContent = "Usuário";
 }
+
+// Atualiza o preço dinâmico no topo do popup conforme a quantidade escolhida
+function atualizarPrecoModal() {
+    if (!produtoSelecionado) return;
+    const precoUnitario = Number(produtoSelecionado.valor);
+
+    if (quantidadeSelecionada === 1) {
+        modalPreco.textContent = `R$ ${precoUnitario.toFixed(2).replace(".", ",")}`;
+    } else {
+        const precoTotal = precoUnitario * quantidadeSelecionada;
+        const precoUnitarioFormatado = precoUnitario.toFixed(2).replace(".", ",");
+        const precoTotalFormatado = precoTotal.toFixed(2).replace(".", ",");
+
+        modalPreco.textContent = `${quantidadeSelecionada}x R$ ${precoUnitarioFormatado} = R$ ${precoTotalFormatado}`;
+    }
+}
+
+// Funções do Modal
+function abrirModal(produtoId, produto) {
+    produtoSelecionado = { id: produtoId, ...produto };
+    quantidadeSelecionada = 1;
+
+    modalNome.textContent = produto.nome;
+    modalQtd.textContent = quantidadeSelecionada;
+
+    atualizarPrecoModal();
+
+    modal.style.display = "flex";
+}
+
+function fecharModal() {
+    modal.style.display = "none";
+    produtoSelecionado = null;
+}
+
+modalFechar.addEventListener("click", fecharModal);
+modal.addEventListener("click", (e) => {
+    if (e.target === modal) fecharModal();
+});
+
+btnModalAumentar.addEventListener("click", () => {
+    if (produtoSelecionado && quantidadeSelecionada < produtoSelecionado.estoque) {
+        quantidadeSelecionada++;
+        modalQtd.textContent = quantidadeSelecionada;
+        atualizarPrecoModal();
+    }
+});
+
+btnModalDiminuir.addEventListener("click", () => {
+    if (quantidadeSelecionada > 1) {
+        quantidadeSelecionada--;
+        modalQtd.textContent = quantidadeSelecionada;
+        atualizarPrecoModal();
+    }
+});
+
+btnModalConfirmar.addEventListener("click", async () => {
+    if (produtoSelecionado) {
+        await adicionarAoCarrinho(produtoSelecionado.id, produtoSelecionado, quantidadeSelecionada);
+        fecharModal();
+    }
+});
 
 async function adicionarAoCarrinho(produtoId, produto, quantidade) {
     try {
@@ -106,7 +180,6 @@ async function carregarProdutosDisponiveis() {
 
             if (produto.estoque <= 0) continue;
 
-            // Busca o nome da loja na coleção pública "lojas"
             let nomeLoja = cacheLojas[produto.comerciante_id];
 
             if (!nomeLoja) {
@@ -125,7 +198,6 @@ async function carregarProdutosDisponiveis() {
             const card = document.createElement("article");
             card.className = "product-card";
 
-            // 1. Primeiro insere o HTML base do card
             card.innerHTML = `
                 <div class="product-image-placeholder">
                     <span>Sem imagem</span>
@@ -137,16 +209,12 @@ async function carregarProdutosDisponiveis() {
                     <p class="product-seller">Vendido por: ${nomeLoja}</p>
                 </div>
                 <div class="product-acoes">
-                    <div class="quantidade-seletor">
-                        <button type="button" class="btn-qtd" data-acao="diminuir">−</button>
-                        <span class="qtd-valor">1</span>
-                        <button type="button" class="btn-qtd" data-acao="aumentar">+</button>
-                    </div>
-                    <button type="button" class="btn-adicionar-carrinho">
+                    <button type="button" class="btn-adicionar-carrinho" style="width: 100%;">
                         Adicionar
                     </button>
                 </div>
             `;
+
             if (produto.imagem) {
                 const imgContainer = card.querySelector(".product-image-placeholder");
                 const img = document.createElement("img");
@@ -156,28 +224,8 @@ async function carregarProdutosDisponiveis() {
                 imgContainer.replaceChildren(img);
             }
 
-            // Lógica do seletor de quantidade
-            const qtdValor = card.querySelector(".qtd-valor");
-            const botoesQtd = card.querySelectorAll(".btn-qtd");
-
-            botoesQtd.forEach((botao) => {
-                botao.addEventListener("click", () => {
-                    let atual = parseInt(qtdValor.textContent);
-
-                    if (botao.dataset.acao === "aumentar" && atual < produto.estoque) {
-                        atual++;
-                    } else if (botao.dataset.acao === "diminuir" && atual > 1) {
-                        atual--;
-                    }
-
-                    qtdValor.textContent = atual;
-                });
-            });
-
-            // Botão adicionar ao carrinho
-            card.querySelector(".btn-adicionar-carrinho").addEventListener("click", async () => {
-                const quantidade = parseInt(qtdValor.textContent);
-                await adicionarAoCarrinho(docSnap.id, produto, quantidade);
+            card.querySelector(".btn-adicionar-carrinho").addEventListener("click", () => {
+                abrirModal(docSnap.id, produto);
             });
 
             containerProdutos.appendChild(card);
@@ -195,7 +243,7 @@ async function carregarProdutosDisponiveis() {
 
 await carregarProdutosDisponiveis();
 
-// 5. ENDEREÇO
+// Endereço
 try {
     const enderecosRef = collection(db, "enderecos");
     const consultaEndereco = query(
