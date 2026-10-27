@@ -1,6 +1,7 @@
 import { auth, db } from "../../public/firebase-config.js";
 import { mostrarToast } from "../shared/toast.js";
 import { protegerPagina } from "../shared/guarda.js";
+import { escaparHtml } from "../shared/html.js";
 import {
     doc,
     setDoc,
@@ -11,6 +12,7 @@ import {
     getDocs
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
+// ELEMENTOS DA DOM
 const nomeElemento = document.getElementById("user-name");
 const badgeElemento = document.getElementById("location-badge");
 const textoLocalizacao = document.getElementById("location-text");
@@ -20,7 +22,11 @@ const botaoMeusPedidos = document.getElementById("btn-meus-pedidos");
 const botaoPedidosRecebidos = document.getElementById("btn-pedidos-recebidos");
 const botaoMeusProdutos = document.getElementById("btn-meus-produtos");
 
-// Modal de Adicionar ao Carrinho
+const searchForm = document.getElementById("search-form");
+const searchInput = document.getElementById("search-input");
+const categoriesNav = document.getElementById("categories-nav");
+
+// ELEMENTOS DO MODAL
 const modal = document.getElementById("modal-carrinho");
 const modalFechar = document.getElementById("modal-close");
 const modalNome = document.getElementById("modal-produto-nome");
@@ -30,12 +36,16 @@ const btnModalDiminuir = document.getElementById("btn-modal-diminuir");
 const btnModalAumentar = document.getElementById("btn-modal-aumentar");
 const btnModalConfirmar = document.getElementById("btn-modal-confirmar");
 
+// ESTADOS DA PÁGINA
 let produtoSelecionado = null;
 let quantidadeSelecionada = 1;
+let todosProdutos = [];
+let categoriaAtiva = "todos";
 
 const { usuario, dados } = await protegerPagina({ tipos: ["cliente", "comerciante"] });
 let usuarioLogado = usuario;
 
+// INICIALIZAÇÃO E PERFIS
 try {
     if (dados) {
         nomeElemento.textContent = dados.nome || "Usuário";
@@ -62,6 +72,12 @@ try {
     nomeElemento.textContent = "Usuário";
 }
 
+// PREVENIR RECARREGAMENTO NO FORM DE BUSCA
+if (searchForm) {
+    searchForm.addEventListener("submit", (e) => e.preventDefault());
+}
+
+// LÓGICA DO MODAL DO CARRINHO
 function atualizarPrecoModal() {
     if (!produtoSelecionado) return;
     const precoUnitario = Number(produtoSelecionado.valor);
@@ -155,9 +171,9 @@ async function adicionarAoCarrinho(produtoId, produto, quantidade) {
     }
 }
 
+// CARREGAMENTO E FILTRAGEM DE PRODUTOS
 async function carregarProdutosDisponiveis() {
     try {
-        // Apenas exibe produtos aprovados pelo admin
         const consultaProdutos = query(
             collection(db, "produtos"),
             where("status_verificacao", "==", "aprovado")
@@ -169,13 +185,9 @@ async function carregarProdutosDisponiveis() {
             return;
         }
 
-        containerProdutos.innerHTML = "";
-
-        // Pré-carrega os nomes das lojas para evitar múltiplas chamadas repetidas
+        // Pré-carrega nomes das lojas em paralelo
         const comercianteIds = [...new Set(
-            resultado.docs
-                .map(d => d.data().comerciante_id)
-                .filter(Boolean)
+            resultado.docs.map(d => d.data().comerciante_id).filter(Boolean)
         )];
 
         const cacheLojas = {};
@@ -192,55 +204,15 @@ async function carregarProdutosDisponiveis() {
             })
         );
 
-        let quantidadeExibida = 0;
+        todosProdutos = resultado.docs
+            .map(docSnap => ({
+                id: docSnap.id,
+                ...docSnap.data(),
+                nomeLoja: cacheLojas[docSnap.data().comerciante_id] || "Loja"
+            }))
+            .filter(produto => Number(produto.estoque) > 0);
 
-        for (const docSnap of resultado.docs) {
-            const produto = docSnap.data();
-
-            if (produto.estoque <= 0) continue;
-
-            const nomeLoja = cacheLojas[produto.comerciante_id] || "Loja";
-            quantidadeExibida++;
-
-            const card = document.createElement("article");
-            card.className = "product-card";
-
-            card.innerHTML = `
-                <div class="product-image-placeholder">
-                    <span>Sem imagem</span>
-                </div>
-                <div class="product-info">
-                    <p class="product-title">${produto.nome}</p>
-                    <p class="product-description">${produto.descricao || ""}</p>
-                    <p class="product-price">R$ ${Number(produto.valor).toFixed(2).replace(".", ",")}</p>
-                    <p class="product-seller">Vendido por: ${nomeLoja}</p>
-                </div>
-                <div class="product-acoes">
-                    <button type="button" class="btn-adicionar-carrinho" style="width: 100%;">
-                        Adicionar
-                    </button>
-                </div>
-            `;
-
-            if (produto.imagem) {
-                const imgContainer = card.querySelector(".product-image-placeholder");
-                const img = document.createElement("img");
-                img.src = `data:image/jpeg;base64,${produto.imagem}`;
-                img.alt = produto.nome;
-                img.loading = "lazy";
-                imgContainer.replaceChildren(img);
-            }
-
-            card.querySelector(".btn-adicionar-carrinho").addEventListener("click", () => {
-                abrirModal(docSnap.id, produto);
-            });
-
-            containerProdutos.appendChild(card);
-        }
-
-        if (quantidadeExibida === 0) {
-            containerProdutos.innerHTML = `<p class="empty-message">Nenhum produto disponível no momento.</p>`;
-        }
+        aplicarFiltros();
 
     } catch (erro) {
         console.error("Erro ao carregar produtos:", erro);
@@ -248,9 +220,86 @@ async function carregarProdutosDisponiveis() {
     }
 }
 
+function aplicarFiltros() {
+    const termoBusca = searchInput ? searchInput.value.toLowerCase().trim() : "";
+
+    const produtosFiltrados = todosProdutos.filter(produto => {
+        const atendeNome = (produto.nome || "").toLowerCase().includes(termoBusca);
+        const atendeCategoria = categoriaAtiva === "todos" || produto.categoria === categoriaAtiva;
+
+        return atendeNome && atendeCategoria;
+    });
+
+    renderizarProdutos(produtosFiltrados);
+}
+
+function renderizarProdutos(lista) {
+    containerProdutos.innerHTML = "";
+
+    if (lista.length === 0) {
+        containerProdutos.innerHTML = `<p class="empty-message">Nenhum produto encontrado com os filtros aplicados.</p>`;
+        return;
+    }
+
+    lista.forEach(produto => {
+        const card = document.createElement("article");
+        card.className = "product-card";
+
+        card.innerHTML = `
+            <div class="product-image-placeholder">
+                <span>Sem imagem</span>
+            </div>
+            <div class="product-info">
+                <p class="product-title">${escaparHtml(produto.nome)}</p>
+                <p class="product-description">${escaparHtml(produto.descricao || "")}</p>
+                <p class="product-price">R$ ${Number(produto.valor).toFixed(2).replace(".", ",")}</p>
+                <p class="product-seller">Vendido por: ${escaparHtml(produto.nomeLoja)}</p>
+            </div>
+            <div class="product-acoes">
+                <button type="button" class="btn-adicionar-carrinho" style="width: 100%;">
+                    Adicionar
+                </button>
+            </div>
+        `;
+
+        if (produto.imagem) {
+            const imgContainer = card.querySelector(".product-image-placeholder");
+            const img = document.createElement("img");
+            img.src = `data:image/jpeg;base64,${produto.imagem}`;
+            img.alt = produto.nome;
+            img.loading = "lazy";
+            imgContainer.replaceChildren(img);
+        }
+
+        card.querySelector(".btn-adicionar-carrinho").addEventListener("click", () => {
+            abrirModal(produto.id, produto);
+        });
+
+        containerProdutos.appendChild(card);
+    });
+}
+
+// EVENTOS DE NAVEGAÇÃO E FILTROS
+if (searchInput) {
+    searchInput.addEventListener("input", aplicarFiltros);
+}
+
+if (categoriesNav) {
+    categoriesNav.addEventListener("click", (e) => {
+        const chip = e.target.closest(".category-chip");
+        if (!chip) return;
+
+        document.querySelectorAll(".category-chip").forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+
+        categoriaAtiva = chip.dataset.categoria || "todos";
+        aplicarFiltros();
+    });
+}
+
 await carregarProdutosDisponiveis();
 
-// Endereço
+// CARREGAMENTO DO ENDEREÇO DO USUÁRIO
 try {
     const enderecosRef = collection(db, "enderecos");
     const consultaEndereco = query(

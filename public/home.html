@@ -4,7 +4,7 @@
     <style>html.aguardando-auth body { visibility: hidden; }</style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>home</title>
+    <title>Home</title>
     <link rel="stylesheet" href="../base.css">
     <link rel="stylesheet" href="../pages/home/home.css">
 </head>
@@ -73,17 +73,17 @@
         </form>
     </header>
 
-    <nav class="categories-nav">
-        <a href="paginamanutencao.html" class="category-chip active" data-categoria="todos">Todos</a>
-        <a href="paginamanutencao.html" class="category-chip" data-categoria="promocoes">Promoções</a>
-        <a href="paginamanutencao.html" class="category-chip" data-categoria="padaria">Padaria</a>
-        <a href="paginamanutencao.html" class="category-chip" data-categoria="hortifruti">Hortifruti</a>
+    <nav class="categories-nav" id="categories-nav">
+        <button type="button" class="category-chip active" data-categoria="todos">Todos</button>
+        <button type="button" class="category-chip" data-categoria="promocoes">Promoções</button>
+        <button type="button" class="category-chip" data-categoria="padaria">Padaria</button>
+        <button type="button" class="category-chip" data-categoria="hortifruti">Hortifruti</button>
     </nav>
 
     <section class="products-section">
         <h3 class="section-title">Produtos próximos</h3>
         <div class="products-list" id="products-container">
-            <p class="empty-message">Nenhum produto cadastrado no momento.</p>
+            <p class="empty-message">Carregando produtos...</p>
         </div>
     </section>
 
