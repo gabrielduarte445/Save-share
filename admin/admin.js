@@ -2,7 +2,13 @@ import { auth, db } from "../public/firebase-config.js";
 import { protegerPagina } from "../pages/shared/guarda.js";
 import { mostrarToast } from "../pages/shared/toast.js";
 import { escaparHtml } from "../pages/shared/html.js";
-import { analisarProdutoComIA, mensagemErroIA } from "../servicos/ia.js";
+import {
+    analisarProdutoComIA,
+    mensagemErroIA,
+    temChaveIA,
+    salvarChaveIA,
+    removerChaveIA
+} from "../servicos/ia.js";
 import { STATUS, ROTULOS_STATUS, parecerHtml } from "../servicos/verificacao.js";
 import {
     collection,
@@ -287,6 +293,42 @@ function renderDesempenho() {
         <p class="adm-nota">O erro mais grave é "IA disse próprio, admin reprovou": é o caso em que um
             produto ruim passaria se a decisão dependesse só da IA. Por isso a decisão final é humana.</p>`;
 }
+
+
+// ---------- Chave gratuita da IA (fica só neste navegador) ----------
+
+const elIaStatus = document.getElementById("adm-ia-status");
+const elIaForm = document.getElementById("adm-ia-form");
+const elIaInput = document.getElementById("adm-chave-ia");
+const btnSalvarChave = document.getElementById("btn-salvar-chave");
+const btnRemoverChave = document.getElementById("btn-remover-chave");
+
+function atualizarConfigIA() {
+    const tem = temChaveIA();
+    elIaStatus.textContent = tem
+        ? "IA ativa neste navegador (chave guardada só aqui)."
+        : "IA desligada: gere uma chave gratuita em aistudio.google.com/apikey e cole abaixo. Sem a chave, você ainda pode aprovar e reprovar normalmente.";
+    elIaForm.hidden = tem;
+    btnRemoverChave.hidden = !tem;
+}
+
+btnSalvarChave.addEventListener("click", () => {
+    try {
+        salvarChaveIA(elIaInput.value);
+        elIaInput.value = "";
+        aviso("Chave salva neste navegador.");
+    } catch {
+        aviso("Essa chave não parece válida. Copie de novo do Google AI Studio.", "erro");
+    }
+    atualizarConfigIA();
+});
+
+btnRemoverChave.addEventListener("click", () => {
+    removerChaveIA();
+    atualizarConfigIA();
+});
+
+atualizarConfigIA();
 
 // ---------- Ações ----------
 

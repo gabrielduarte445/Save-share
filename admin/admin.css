@@ -240,3 +240,19 @@
     border-radius: 8px;
     border: 1px solid #eaedf0;
 }
+
+/* Configuração da chave da IA */
+.adm-ia-config {
+    margin: 16px 20px 0;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: #f3f4ff;
+    border: 1px solid #c5cae9;
+    font-size: 13px;
+    color: #283593;
+    display: grid;
+    gap: 8px;
+}
+.adm-ia-form { display: flex; gap: 8px; flex-wrap: wrap; }
+.adm-ia-input { flex: 1; min-width: 220px; min-height: 0; height: 40px; }
+@media (min-width: 768px) { .adm-ia-config { margin-left: 32px; margin-right: 32px; } }

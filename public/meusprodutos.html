@@ -7,6 +7,8 @@
     <title>Meus Produtos</title>
     <link rel="stylesheet" href="../base.css">
     <link rel="stylesheet" href="../pages/produtos/produtos.css">
+    <!-- traz os estilos .ia-box (parecer) e .selo-* -->
+    <link rel="stylesheet" href="../admin/admin.css">
 </head>
 <body class="body-app">
 
@@ -57,10 +59,8 @@
                             <label for="produto-foto" class="btn-escolher-foto">Escolher foto</label>
                             <input type="file" id="produto-foto" accept="image/jpeg,image/png,image/webp" hidden>
                             <button type="button" id="btn-remover-foto" class="btn-remover-foto" style="display:none;">Remover foto</button>
-                            <button type="button" id="btn-checar-foto" class="btn-remover-foto" style="display:none;">Checar foto com IA</button>
                         </div>
                     </div>
-                    <div id="caixa-parecer-ia"></div>
                 </div>
 
                 <div class="form-grupo">
@@ -127,7 +127,7 @@
 
                 <div class="form-grupo secao-inspecao">
                     <label class="rotulo-inspecao">Fotos do lote para análise (até 3)</label>
-                    <p class="descricao-inspecao">Mostre o estado real do lote, de perto. Só o administrador vê estas fotos. Vídeos não são aceitos nesta versão.</p>
+                    <p class="descricao-inspecao">Mostre o estado real do lote, de perto. Só o administrador vê estas fotos. Vídeos não são aceitos.</p>
 
                     <div class="inspecao-container">
                         <label for="midias-inspecao" class="btn-escolher-inspecao">

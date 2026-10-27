@@ -10,7 +10,7 @@
 </head>
 <body class="body-app">
 <main class="adm-container">
- 
+
     <header class="adm-header">
         <div>
             <p class="adm-saudacao">Painel do administrador</p>
@@ -18,26 +18,35 @@
         </div>
         <button type="button" class="adm-btn-sair" id="btn-sair">Sair</button>
     </header>
- 
+
+    <section class="adm-ia-config" id="adm-ia-config">
+        <p class="adm-ia-status" id="adm-ia-status"></p>
+        <div class="adm-ia-form" id="adm-ia-form">
+            <input type="password" id="adm-chave-ia" class="adm-obs adm-ia-input"
+                placeholder="Cole aqui a chave gratuita do Google AI Studio" autocomplete="off">
+            <button type="button" class="adm-btn adm-btn-ia" id="btn-salvar-chave">Salvar chave</button>
+        </div>
+        <button type="button" class="adm-btn adm-btn-neutro" id="btn-remover-chave" hidden>Remover chave deste navegador</button>
+    </section>
+
     <div class="adm-legado" id="adm-legado" hidden>
         <p><strong id="adm-legado-qtd">0</strong> produto(s) cadastrado(s) antes da verificação, sem status.
             Eles não aparecem para os clientes até serem aprovados.</p>
         <button type="button" class="adm-btn adm-btn-neutro" id="btn-migrar-legado">Aprovar todos como legado</button>
     </div>
- 
+
     <nav class="adm-abas" id="adm-abas">
         <button type="button" class="adm-aba ativa" data-aba="pendente">Pendentes <span id="cont-pendente">0</span></button>
         <button type="button" class="adm-aba" data-aba="aprovado">Aprovados <span id="cont-aprovado">0</span></button>
         <button type="button" class="adm-aba" data-aba="reprovado">Reprovados <span id="cont-reprovado">0</span></button>
         <button type="button" class="adm-aba" data-aba="ia">Desempenho da IA</button>
     </nav>
- 
+
     <section class="adm-lista" id="adm-lista">
         <p class="adm-vazio">Carregando...</p>
     </section>
- 
+
 </main>
 <script type="module" src="../admin/admin.js"></script>
 </body>
 </html>
- 
