@@ -1,5 +1,5 @@
 import { auth, db } from "../../public/firebase-config.js";
-import { mostrarToast, confirmarAcao } from "../shared/toast.js";
+import { mostrarToast } from "../shared/toast.js";
 import { protegerPagina } from "../shared/guarda.js";
 import {
     doc,
@@ -20,7 +20,7 @@ const botaoMeusPedidos = document.getElementById("btn-meus-pedidos");
 const botaoPedidosRecebidos = document.getElementById("btn-pedidos-recebidos");
 const botaoMeusProdutos = document.getElementById("btn-meus-produtos");
 
-// Elementos do Modal
+// Modal de Adicionar ao Carrinho
 const modal = document.getElementById("modal-carrinho");
 const modalFechar = document.getElementById("modal-close");
 const modalNome = document.getElementById("modal-produto-nome");
@@ -39,21 +39,19 @@ let usuarioLogado = usuario;
 try {
     if (dados) {
         nomeElemento.textContent = dados.nome || "Usuário";
-
         document.body.classList.remove("tema-comerciante", "tema-entregador");
 
         if (dados.tipo_usuario === "comerciante") {
-            botaoMeusProdutos.style.display = "flex";
-            botaoPedidosRecebidos.style.display = "flex";
+            if (botaoMeusProdutos) botaoMeusProdutos.style.display = "flex";
+            if (botaoPedidosRecebidos) botaoPedidosRecebidos.style.display = "flex";
             document.body.classList.add("tema-comerciante");
 
         } else if (dados.tipo_usuario === "cliente") {
-            botaoMeusPedidos.style.display = "flex";
+            if (botaoMeusPedidos) botaoMeusPedidos.style.display = "flex";
 
         } else if (dados.tipo_usuario === "entregador") {
-            if (typeof botaoEntregas !== "undefined") {
-                botaoEntregas.style.display = "flex";
-            }
+            const botaoEntregas = document.getElementById("btn-entregas");
+            if (botaoEntregas) botaoEntregas.style.display = "flex";
             document.body.classList.add("tema-entregador");
         }
     } else {
@@ -64,7 +62,6 @@ try {
     nomeElemento.textContent = "Usuário";
 }
 
-// Atualiza o preço dinâmico no topo do popup conforme a quantidade escolhida
 function atualizarPrecoModal() {
     if (!produtoSelecionado) return;
     const precoUnitario = Number(produtoSelecionado.valor);
@@ -80,7 +77,6 @@ function atualizarPrecoModal() {
     }
 }
 
-// Funções do Modal
 function abrirModal(produtoId, produto) {
     produtoSelecionado = { id: produtoId, ...produto };
     quantidadeSelecionada = 1;
@@ -89,7 +85,6 @@ function abrirModal(produtoId, produto) {
     modalQtd.textContent = quantidadeSelecionada;
 
     atualizarPrecoModal();
-
     modal.style.display = "flex";
 }
 
@@ -132,7 +127,6 @@ async function adicionarAoCarrinho(produtoId, produto, quantidade) {
         const docCarrinho = await getDoc(refCarrinho);
 
         let itens = docCarrinho.exists() ? (docCarrinho.data().itens || []) : [];
-
         const indiceExistente = itens.findIndex((item) => item.produto_id === produtoId);
 
         if (indiceExistente >= 0) {
@@ -153,18 +147,22 @@ async function adicionarAoCarrinho(produtoId, produto, quantidade) {
             atualizado_em: new Date()
         });
 
-        alert(`${quantidade}x ${produto.nome} adicionado ao carrinho!`);
+        mostrarToast(`${quantidade}x ${produto.nome} adicionado ao carrinho!`, "sucesso");
 
     } catch (erro) {
         console.error("Erro ao adicionar ao carrinho:", erro);
-        alert("Não foi possível adicionar ao carrinho.");
+        mostrarToast("Não foi possível adicionar ao carrinho.", "erro");
     }
 }
 
 async function carregarProdutosDisponiveis() {
     try {
-        const produtosRef = collection(db, "produtos");
-        const resultado = await getDocs(produtosRef);
+        // Apenas exibe produtos aprovados pelo admin
+        const consultaProdutos = query(
+            collection(db, "produtos"),
+            where("status_verificacao", "==", "aprovado")
+        );
+        const resultado = await getDocs(consultaProdutos);
 
         if (resultado.empty) {
             containerProdutos.innerHTML = `<p class="empty-message">Nenhum produto cadastrado no momento.</p>`;
@@ -173,27 +171,36 @@ async function carregarProdutosDisponiveis() {
 
         containerProdutos.innerHTML = "";
 
+        // Pré-carrega os nomes das lojas para evitar múltiplas chamadas repetidas
+        const comercianteIds = [...new Set(
+            resultado.docs
+                .map(d => d.data().comerciante_id)
+                .filter(Boolean)
+        )];
+
         const cacheLojas = {};
+        await Promise.all(
+            comercianteIds.map(async (comercianteId) => {
+                try {
+                    const docLoja = await getDoc(doc(db, "lojas", comercianteId));
+                    cacheLojas[comercianteId] = docLoja.exists()
+                        ? (docLoja.data().nome_loja || "Loja")
+                        : "Loja";
+                } catch {
+                    cacheLojas[comercianteId] = "Loja";
+                }
+            })
+        );
+
+        let quantidadeExibida = 0;
 
         for (const docSnap of resultado.docs) {
             const produto = docSnap.data();
 
             if (produto.estoque <= 0) continue;
 
-            let nomeLoja = cacheLojas[produto.comerciante_id];
-
-            if (!nomeLoja) {
-                try {
-                    const refLoja = doc(db, "lojas", produto.comerciante_id);
-                    const docLoja = await getDoc(refLoja);
-                    nomeLoja = docLoja.exists()
-                        ? (docLoja.data().nome_loja || "Loja")
-                        : "Loja";
-                } catch {
-                    nomeLoja = "Loja";
-                }
-                cacheLojas[produto.comerciante_id] = nomeLoja;
-            }
+            const nomeLoja = cacheLojas[produto.comerciante_id] || "Loja";
+            quantidadeExibida++;
 
             const card = document.createElement("article");
             card.className = "product-card";
@@ -231,7 +238,7 @@ async function carregarProdutosDisponiveis() {
             containerProdutos.appendChild(card);
         }
 
-        if (containerProdutos.innerHTML === "") {
+        if (quantidadeExibida === 0) {
             containerProdutos.innerHTML = `<p class="empty-message">Nenhum produto disponível no momento.</p>`;
         }
 

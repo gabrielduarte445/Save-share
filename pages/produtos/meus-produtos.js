@@ -6,7 +6,6 @@ import { escaparHtml } from "../shared/html.js";
 import {
     camposNovaSubmissao,
     mudouConteudo,
-    parecerHtml,
     LIMITE_IMAGEM_BASE64
 } from "../../servicos/verificacao.js";
 
@@ -21,17 +20,9 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-// ---------- CONSTANTES E DICIONÁRIOS ----------
 const MAX_FOTOS_LOTE = 3;
 
-const TEXTO_STATUS = {
-    pendente: "⏳ Aguardando aprovação",
-    aprovado: "✓ Verificado",
-    reprovado: "✕ Reprovado",
-    legado: "Aguardando migração"
-};
-
-// ---------- ELEMENTOS DA DOM ----------
+// ELEMENTOS DA DOM
 const listaProdutos = document.getElementById("lista-produtos");
 const mensagemVazia = document.getElementById("mensagem-vazia");
 const botaoAdicionar = document.getElementById("btn-adicionar-produto");
@@ -59,56 +50,27 @@ const blocoChecklist = document.querySelector(".checklist-consumivel");
 const campoFoto = document.getElementById("produto-foto");
 const previewFoto = document.getElementById("preview-foto");
 const botaoRemoverFoto = document.getElementById("btn-remover-foto");
-const botaoChecarFoto = document.getElementById("btn-checar-foto");
-const caixaParecerIA = document.getElementById("caixa-parecer-ia");
 
 const campoMidiasInspecao = document.getElementById("midias-inspecao");
 const containerPreviewsInspecao = document.getElementById("lista-previews-inspecao");
 
 formulario.noValidate = true;
 
-// ---------- ESTADOS GLOBAIS ----------
-let capaBase64 = null;        // foto principal pronta (nova ou já salva)
-let inspecaoBase64 = [];      // novas fotos do lote (base64 reduzido)
+let capaBase64 = null;
+let inspecaoBase64 = [];
 let produtoEmEdicao = null;
 let usuarioAtual = null;
-
-// Cache local dos produtos para consulta rápida na delegação de eventos
-let produtosCache = new Map();
 
 const { usuario } = await protegerPagina({ tipos: ["comerciante"] });
 usuarioAtual = usuario;
 
 await carregarProdutos();
 
-// ---------- LISTAGEM E EVENTOS DE CARD ----------
-
-// Delegação de eventos no contêiner da lista
-listaProdutos.addEventListener("click", (e) => {
-    const botaoEditar = e.target.closest(".btn-editar");
-    const botaoExcluir = e.target.closest(".btn-excluir");
-
-    if (!botaoEditar && !botaoExcluir) return;
-
-    const card = e.target.closest(".card-produto");
-    if (!card) return;
-
-    const id = card.dataset.id;
-    const produto = produtosCache.get(id);
-
-    if (!produto) return;
-
-    if (botaoEditar) {
-        abrirModalEdicao(id, produto);
-    } else if (botaoExcluir) {
-        excluirProduto(id, produto.nome);
-    }
-});
+// ---------- LISTAGEM ----------
 
 async function carregarProdutos() {
     listaProdutos.innerHTML = `<p class="empty-message">Carregando produtos...</p>`;
     mensagemVazia.style.display = "none";
-    produtosCache.clear();
 
     try {
         const consulta = query(
@@ -124,11 +86,8 @@ async function carregarProdutos() {
         }
 
         listaProdutos.innerHTML = "";
-
         resultado.docs.forEach((docSnap) => {
-            const dados = docSnap.data();
-            produtosCache.set(docSnap.id, dados);
-            listaProdutos.appendChild(criarCardProduto(docSnap.id, dados));
+            listaProdutos.appendChild(criarCardProduto(docSnap.id, docSnap.data()));
         });
 
     } catch (erro) {
@@ -137,10 +96,16 @@ async function carregarProdutos() {
     }
 }
 
+const TEXTO_STATUS = {
+    pendente: "Aguardando aprovação",
+    aprovado: "✓ Verificado",
+    reprovado: "✕ Reprovado",
+    legado: "Aguardando migração"
+};
+
 function criarCardProduto(id, produto) {
     const card = document.createElement("div");
     card.className = "card-produto";
-    card.dataset.id = id;
 
     let classeEstoque = "estoque-disponivel";
     let textoEstoque = `Estoque: ${Number(produto.estoque) || 0} unidades`;
@@ -190,6 +155,9 @@ function criarCardProduto(id, produto) {
         card.querySelector(".imagem-produto").replaceChildren(img);
     }
 
+    card.querySelector(".btn-editar").addEventListener("click", () => abrirModalEdicao(id, produto));
+    card.querySelector(".btn-excluir").addEventListener("click", () => excluirProduto(id, produto.nome));
+
     return card;
 }
 
@@ -204,16 +172,12 @@ function mostrarPreviewCapa(base64) {
         img.alt = "Prévia da foto";
         previewFoto.appendChild(img);
         botaoRemoverFoto.style.display = "inline-block";
-        if (botaoChecarFoto) botaoChecarFoto.style.display = "inline-block";
     } else {
         const texto = document.createElement("span");
         texto.textContent = "Sem foto";
         previewFoto.appendChild(texto);
         botaoRemoverFoto.style.display = "none";
-        if (botaoChecarFoto) botaoChecarFoto.style.display = "none";
     }
-
-    if (caixaParecerIA) caixaParecerIA.innerHTML = "";
 }
 
 campoFoto.addEventListener("change", async () => {
@@ -243,42 +207,7 @@ botaoRemoverFoto.addEventListener("click", () => {
     mostrarPreviewCapa(null);
 });
 
-// Pré-checagem opcional via IA
-if (botaoChecarFoto) {
-    botaoChecarFoto.addEventListener("click", async () => {
-        if (!capaBase64) {
-            mostrarToast("Escolha a foto primeiro.", "erro");
-            return;
-        }
-
-        botaoChecarFoto.disabled = true;
-        botaoChecarFoto.textContent = "Analisando...";
-
-        try {
-            const { analisarProdutoComIA, mensagemErroIA } = await import("../shared/ia.js");
-
-            try {
-                const parecer = await analisarProdutoComIA({
-                    nome: campoNome.value,
-                    descricao: campoDescricao.value,
-                    imagemBase64: capaBase64
-                });
-                caixaParecerIA.innerHTML = parecerHtml(parecer);
-            } catch (erro) {
-                console.error(erro);
-                mostrarToast(mensagemErroIA(erro), "erro");
-            }
-        } catch (erro) {
-            console.error("Erro ao carregar o serviço de IA:", erro);
-            mostrarToast("O serviço de IA não está disponível agora.", "erro");
-        } finally {
-            botaoChecarFoto.disabled = false;
-            botaoChecarFoto.textContent = "Checar foto com IA";
-        }
-    });
-}
-
-// ---------- FOTOS DO LOTE (para o admin) ----------
+// ---------- FOTOS DO LOTE (INSPEÇÃO) ----------
 
 function renderizarPreviewsInspecao() {
     containerPreviewsInspecao.replaceChildren();
@@ -338,10 +267,19 @@ campoMidiasInspecao.addEventListener("change", async () => {
 
 // ---------- MODAL ----------
 
+function resetarCheckboxes() {
+    if (checkMofo) checkMofo.checked = false;
+    if (checkFuros) checkFuros.checked = false;
+    if (checkOdor) checkOdor.checked = false;
+    if (checkTextura) checkTextura.checked = false;
+    if (checkConsumo) checkConsumo.checked = false;
+}
+
 function abrirModalNovo() {
     modalTitulo.textContent = "Adicionar Produto";
     campoId.value = "";
     formulario.reset();
+    resetarCheckboxes();
 
     produtoEmEdicao = null;
     capaBase64 = null;
@@ -357,6 +295,7 @@ function abrirModalNovo() {
 function abrirModalEdicao(id, produto) {
     modalTitulo.textContent = "Editar Produto";
     formulario.reset();
+    resetarCheckboxes();
 
     produtoEmEdicao = { id, ...produto };
     campoId.value = id;
@@ -371,14 +310,14 @@ function abrirModalEdicao(id, produto) {
     mostrarPreviewCapa(capaBase64);
     renderizarPreviewsInspecao();
 
-    const temChecklist = Boolean(produto.checklist_consumivel);
-    blocoChecklist.style.display = temChecklist ? "none" : "block";
+    blocoChecklist.style.display = produto.checklist_consumivel ? "none" : "block";
     modal.style.display = "flex";
 }
 
 function fecharModal() {
     modal.style.display = "none";
     formulario.reset();
+    resetarCheckboxes();
     produtoEmEdicao = null;
     capaBase64 = null;
     inspecaoBase64 = [];
@@ -525,11 +464,10 @@ async function excluirProduto(id, nomeProduto) {
     if (!confirmou) return;
 
     try {
-        const refProduto = doc(db, "produtos", id);
-        const fotos = await getDocs(collection(refProduto, "inspecao"));
-
         const lote = writeBatch(db);
+        const refProduto = doc(db, "produtos", id);
 
+        const fotos = await getDocs(collection(refProduto, "inspecao"));
         fotos.forEach((f) => lote.delete(f.ref));
         lote.delete(refProduto);
 
