@@ -1,9 +1,14 @@
-import { auth, db } from "../../public/firebase-config.js";
+import { db } from "../../public/firebase-config.js";
+import { protegerPagina } from "../shared/guarda.js";
 import { mostrarToast } from "../shared/toast.js";
-
+import { escaparHtml } from "../shared/html.js";
 import {
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    geocodificarEndereco,
+    obterPosicaoAtual,
+    distanciaKm,
+    formatarDistancia,
+    linkRota
+} from "../shared/mapa.js";
 
 import {
     collection,
@@ -17,33 +22,170 @@ import {
 const FORMATO_CODIGO = /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/;
 const listaDisponiveis = document.getElementById("lista-disponiveis");
 const listaMinhasEntregas = document.getElementById("lista-minhas-entregas");
+const btnMinhaPosicao = document.getElementById("btn-minha-posicao");
 
-let usuarioAtual = null;
+const COR_DISPONIVEL = "#2e7d32";
+const COR_ENTREGA = "#1565c0";
+const CENTRO_PADRAO = [-12.9714, -38.5014]; // Salvador
 
+// Só entregador acessa esta tela; os outros tipos vão para a tela deles.
+const { usuario } = await protegerPagina({ tipos: ["entregador"] });
+const usuarioAtual = usuario;
 
-onAuthStateChanged(auth, (usuario) => {
+// ---------- MAPA ----------
 
-    if (!usuario) {
-        window.location.href = "/public/login.html";
+const L = window.L; // Leaflet, carregado por <script> no HTML
+const mapa = L.map("mapa-entregas").setView(CENTRO_PADRAO, 12);
+
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+}).addTo(mapa);
+
+const camadaDisponiveis = L.layerGroup().addTo(mapa);
+const camadaEntregas = L.layerGroup().addTo(mapa);
+const camadaMinhaPosicao = L.layerGroup().addTo(mapa);
+
+const marcadores = new Map();      // pedidoId -> marcador
+const pontosPedidos = new Map();   // pedidoId -> { lat, lng, aproximado }
+let minhaPosicao = null;
+let temporizadorEnquadrar = null;
+
+function enquadrarMapa() {
+    clearTimeout(temporizadorEnquadrar);
+    temporizadorEnquadrar = setTimeout(() => {
+        const grupo = L.featureGroup([camadaDisponiveis, camadaEntregas, camadaMinhaPosicao]);
+        const limites = grupo.getBounds();
+        if (limites.isValid()) {
+            mapa.fitBounds(limites, { padding: [40, 40], maxZoom: 15 });
+        }
+    }, 400);
+}
+
+function atualizarDistancias() {
+    if (!minhaPosicao) return;
+
+    document.querySelectorAll(".card-pedido[data-pedido-id]").forEach((card) => {
+        const ponto = pontosPedidos.get(card.dataset.pedidoId);
+        const alvo = card.querySelector(".pedido-distancia");
+        if (!ponto || !alvo) return;
+
+        const km = distanciaKm(minhaPosicao, ponto);
+        alvo.textContent = `≈ ${formatarDistancia(km)} de você, em linha reta${ponto.aproximado ? " (local aproximado)" : ""}`;
+    });
+}
+
+async function localizarEntregador() {
+    btnMinhaPosicao.disabled = true;
+
+    const posicao = await obterPosicaoAtual();
+    btnMinhaPosicao.disabled = false;
+
+    if (!posicao) {
+        mostrarToast("Não consegui sua localização. Permita o acesso no navegador.", "erro");
         return;
     }
 
-    usuarioAtual = usuario;
-    escutarDisponiveis();
-    escutarMinhasEntregas();
-});
+    minhaPosicao = posicao;
+    camadaMinhaPosicao.clearLayers();
 
+    L.circleMarker([posicao.lat, posicao.lng], {
+        radius: 9, color: "#ffffff", weight: 3, fillColor: "#e65100", fillOpacity: 1
+    }).bindPopup("Você está aqui").addTo(camadaMinhaPosicao);
+
+    atualizarDistancias();
+    enquadrarMapa();
+}
+
+btnMinhaPosicao.addEventListener("click", localizarEntregador);
+
+// Cria o marcador do pedido depois de descobrir as coordenadas do endereço.
+// aindaValido() evita desenhar resultado de uma atualização que já foi substituída.
+async function posicionarPedido(pedidoId, pedido, card, camada, cor, aindaValido) {
+    try {
+        const ponto = await geocodificarEndereco(pedido.endereco_snapshot);
+        if (!aindaValido()) return;
+
+        const alvoDistancia = card.querySelector(".pedido-distancia");
+
+        if (!ponto) {
+            if (alvoDistancia) alvoDistancia.textContent = "Não consegui localizar este endereço no mapa.";
+            return;
+        }
+
+        pontosPedidos.set(pedidoId, ponto);
+
+        const e = pedido.endereco_snapshot;
+        const popup = document.createElement("div");
+        const valor = document.createElement("strong");
+        valor.textContent = `R$ ${Number(pedido.valor_total).toFixed(2).replace(".", ",")}`;
+        const endereco = document.createElement("div");
+        endereco.textContent = `${e.logradouro || e.rua}, ${e.numero} - ${e.bairro}`;
+        popup.append(valor, endereco);
+
+        const marcador = L.circleMarker([ponto.lat, ponto.lng], {
+            radius: 11, color: "#ffffff", weight: 3, fillColor: cor, fillOpacity: 0.95
+        }).bindPopup(popup).addTo(camada);
+
+        marcadores.set(pedidoId, marcador);
+
+        const btnMapa = card.querySelector(".btn-ver-mapa");
+        if (btnMapa) {
+            btnMapa.hidden = false;
+            btnMapa.addEventListener("click", () => {
+                mapa.setView([ponto.lat, ponto.lng], 16);
+                marcador.openPopup();
+                document.getElementById("mapa-entregas").scrollIntoView({ behavior: "smooth", block: "center" });
+            });
+        }
+
+        const linkDaRota = card.querySelector(".link-rota");
+        if (linkDaRota) {
+            linkDaRota.href = linkRota(ponto);
+            linkDaRota.hidden = false;
+        }
+
+        atualizarDistancias();
+        enquadrarMapa();
+
+    } catch (erro) {
+        console.warn("Não foi possível localizar o endereço:", erro);
+        const alvo = card.querySelector(".pedido-distancia");
+        if (alvo) alvo.textContent = "Mapa indisponível para este endereço agora.";
+    }
+}
+
+// ---------- CARDS ----------
+
+function textoEndereco(e) {
+    return `${escaparHtml(e.logradouro || e.rua)}, ${escaparHtml(e.numero)} - ${escaparHtml(e.bairro)}, ${escaparHtml(e.cidade)}/${escaparHtml(e.estado)}`;
+}
+
+function textoItens(pedido) {
+    return pedido.itens
+        .map((item) => `${escaparHtml(item.quantidade)}x ${escaparHtml(item.nome)}`)
+        .join(", ");
+}
+
+const valorFormatado = (pedido) => Number(pedido.valor_total).toFixed(2).replace(".", ",");
+
+let tokenDisponiveis = 0;
+let tokenEntregas = 0;
+
+// ---------- PEDIDOS DISPONÍVEIS ----------
 
 function escutarDisponiveis() {
 
-    const pedidosRef = collection(db, "pedidos");
     const consulta = query(
-        pedidosRef,
+        collection(db, "pedidos"),
         where("status", "==", "preparo"),
         where("entregador_id", "==", null)
     );
 
     onSnapshot(consulta, (resultado) => {
+
+        const token = ++tokenDisponiveis;
+        camadaDisponiveis.clearLayers();
 
         if (resultado.empty) {
             listaDisponiveis.innerHTML = `<p class="empty-message">Nenhum pedido disponível no momento.</p>`;
@@ -54,17 +196,16 @@ function escutarDisponiveis() {
 
         resultado.docs.forEach((docSnap) => {
             const pedido = docSnap.data();
-            const itensTexto = pedido.itens.map((item) => `${item.quantidade}x ${item.nome}`).join(", ");
 
             const card = document.createElement("div");
             card.className = "card-pedido";
+            card.dataset.pedidoId = docSnap.id;
             card.innerHTML = `
-                <p class="pedido-valor">R$ ${Number(pedido.valor_total).toFixed(2).replace(".", ",")}</p>
-                <p class="pedido-endereco">
-                    📍 ${pedido.endereco_snapshot.logradouro}, ${pedido.endereco_snapshot.numero} -
-                    ${pedido.endereco_snapshot.bairro}, ${pedido.endereco_snapshot.cidade}/${pedido.endereco_snapshot.estado}
-                </p>
-                <p class="pedido-itens">${itensTexto}</p>
+                <p class="pedido-valor">R$ ${valorFormatado(pedido)}</p>
+                <p class="pedido-endereco">📍 ${textoEndereco(pedido.endereco_snapshot)}</p>
+                <p class="pedido-distancia">Localizando no mapa...</p>
+                <p class="pedido-itens">${textoItens(pedido)}</p>
+                <button type="button" class="btn-ver-mapa" hidden>Ver no mapa</button>
                 <input type="text" class="input-codigo" placeholder="Código do estabelecimento (6 dígitos)" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false">
                 <button type="button" class="btn-pegar-pedido">Confirmar retirada</button>
             `;
@@ -75,6 +216,9 @@ function escutarDisponiveis() {
             });
 
             listaDisponiveis.appendChild(card);
+
+            posicionarPedido(docSnap.id, pedido, card, camadaDisponiveis, COR_DISPONIVEL,
+                () => token === tokenDisponiveis);
         });
 
     }, (erro) => {
@@ -82,7 +226,6 @@ function escutarDisponiveis() {
         listaDisponiveis.innerHTML = `<p class="empty-message">Erro ao carregar pedidos.</p>`;
     });
 }
-
 
 async function pegarPedido(pedidoId, codigoDigitado) {
 
@@ -92,8 +235,7 @@ async function pegarPedido(pedidoId, codigoDigitado) {
     }
 
     try {
-        const refPedido = doc(db, "pedidos", pedidoId);
-        await updateDoc(refPedido, {
+        await updateDoc(doc(db, "pedidos", pedidoId), {
             entregador_id: usuarioAtual.uid,
             status: "entrega",
             codigo_informado: codigoDigitado
@@ -107,17 +249,20 @@ async function pegarPedido(pedidoId, codigoDigitado) {
     }
 }
 
+// ---------- MINHAS ENTREGAS ----------
 
 function escutarMinhasEntregas() {
 
-    const pedidosRef = collection(db, "pedidos");
     const consulta = query(
-        pedidosRef,
+        collection(db, "pedidos"),
         where("entregador_id", "==", usuarioAtual.uid),
         where("status", "==", "entrega")
     );
 
     onSnapshot(consulta, (resultado) => {
+
+        const token = ++tokenEntregas;
+        camadaEntregas.clearLayers();
 
         if (resultado.empty) {
             listaMinhasEntregas.innerHTML = `<p class="empty-message">Você não tem entregas em andamento.</p>`;
@@ -128,17 +273,17 @@ function escutarMinhasEntregas() {
 
         resultado.docs.forEach((docSnap) => {
             const pedido = docSnap.data();
-            const itensTexto = pedido.itens.map((item) => `${item.quantidade}x ${item.nome}`).join(", ");
 
             const card = document.createElement("div");
             card.className = "card-pedido";
+            card.dataset.pedidoId = docSnap.id;
             card.innerHTML = `
-                <p class="pedido-valor">R$ ${Number(pedido.valor_total).toFixed(2).replace(".", ",")}</p>
-                <p class="pedido-endereco">
-                    📍 ${pedido.endereco_snapshot.logradouro}, ${pedido.endereco_snapshot.numero} -
-                    ${pedido.endereco_snapshot.bairro}, ${pedido.endereco_snapshot.cidade}/${pedido.endereco_snapshot.estado}
-                </p>
-                <p class="pedido-itens">${itensTexto}</p>
+                <p class="pedido-valor">R$ ${valorFormatado(pedido)}</p>
+                <p class="pedido-endereco">📍 ${textoEndereco(pedido.endereco_snapshot)}</p>
+                <p class="pedido-distancia">Localizando no mapa...</p>
+                <p class="pedido-itens">${textoItens(pedido)}</p>
+                <button type="button" class="btn-ver-mapa" hidden>Ver no mapa</button>
+                <a class="link-rota" target="_blank" rel="noopener noreferrer" hidden>Abrir rota no Google Maps</a>
                 <input type="text" class="input-codigo" placeholder="Código do cliente (6 dígitos)" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false">
                 <button type="button" class="btn-entregue">Confirmar entrega</button>
             `;
@@ -149,6 +294,9 @@ function escutarMinhasEntregas() {
             });
 
             listaMinhasEntregas.appendChild(card);
+
+            posicionarPedido(docSnap.id, pedido, card, camadaEntregas, COR_ENTREGA,
+                () => token === tokenEntregas);
         });
 
     }, (erro) => {
@@ -156,7 +304,6 @@ function escutarMinhasEntregas() {
         listaMinhasEntregas.innerHTML = `<p class="empty-message">Erro ao carregar entregas.</p>`;
     });
 }
-
 
 async function concluirEntrega(pedidoId, codigoDigitado) {
 
@@ -166,8 +313,7 @@ async function concluirEntrega(pedidoId, codigoDigitado) {
     }
 
     try {
-        const refPedido = doc(db, "pedidos", pedidoId);
-        await updateDoc(refPedido, {
+        await updateDoc(doc(db, "pedidos", pedidoId), {
             status: "entregue",
             codigo_entrega_informado: codigoDigitado
         });
@@ -179,3 +325,9 @@ async function concluirEntrega(pedidoId, codigoDigitado) {
         mostrarToast("Código incorreto.", "erro");
     }
 }
+
+// ---------- INÍCIO ----------
+
+escutarDisponiveis();
+escutarMinhasEntregas();
+localizarEntregador();

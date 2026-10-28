@@ -1,10 +1,15 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="aguardando-auth">
 <head>
     <style>html.aguardando-auth body { visibility: hidden; }</style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pedidos Disponíveis</title>
+
+    <!-- Leaflet (mapa gratuito, sem chave) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
     <style>
         * {
             box-sizing: border-box;
@@ -51,6 +56,57 @@
             margin-bottom: 20px;
         }
 
+        /* ---- Mapa ---- */
+        .mapa-cabecalho {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .mapa-cabecalho .secao-titulo { margin-bottom: 0; }
+
+        .legenda {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            font-size: 12px;
+            color: #555555;
+        }
+
+        .legenda span::before {
+            content: "";
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 6px;
+            background: var(--cor);
+        }
+
+        #btn-minha-posicao {
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #e65100;
+            background: #ffffff;
+            border: 1px solid #e65100;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        #btn-minha-posicao:disabled { opacity: 0.6; cursor: wait; }
+
+        #mapa-entregas {
+            width: 100%;
+            height: 380px;
+            border: 1px solid #eaedf0;
+            border-radius: 16px;
+            z-index: 0;
+        }
+
         .grid-pedidos {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -77,6 +133,11 @@
             font-size: 14px;
             color: #555555;
             line-height: 1.5;
+        }
+
+        .card-pedido .pedido-distancia {
+            font-size: 12px;
+            color: #1565c0;
         }
 
         .card-pedido .pedido-itens {
@@ -110,6 +171,29 @@
             background-color: #0d47a1;
         }
 
+        .card-pedido button.btn-ver-mapa {
+            margin-top: 0;
+            padding: 8px;
+            font-size: 13px;
+            color: #217738;
+            background: #ffffff;
+            border: 1px solid #217738;
+        }
+
+        .card-pedido button.btn-ver-mapa:hover { background: #f1f8f2; }
+        .card-pedido [hidden] { display: none; }
+
+        .card-pedido .link-rota {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1565c0;
+            text-align: center;
+            text-decoration: none;
+            padding: 8px;
+            border: 1px solid #1565c0;
+            border-radius: 10px;
+        }
+
         .empty-message {
             grid-column: 1 / -1;
             color: #888888;
@@ -120,17 +204,24 @@
             border: 1px solid #eaedf0;
             border-radius: 16px;
         }
+
         .input-codigo {
-        width: 100%;
-        padding: 10px 12px;
-        font-size: 15px;
-        text-align: center;
-        letter-spacing: 3px;
-        border: 1px solid #dcdcdc;
-        border-radius: 8px;
-        outline: none;
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 15px;
+            text-align: center;
+            letter-spacing: 3px;
+            border: 1px solid #dcdcdc;
+            border-radius: 8px;
+            outline: none;
         }
+
         .input-codigo:focus { border-color: #2e7d32; }
+
+        @media (max-width: 600px) {
+            .topbar, .conteudo { padding-left: 16px; padding-right: 16px; }
+            #mapa-entregas { height: 300px; }
+        }
     </style>
 </head>
 <body>
@@ -141,6 +232,19 @@
     </header>
 
     <main class="conteudo">
+
+        <section class="secao">
+            <div class="mapa-cabecalho">
+                <div class="secao-titulo">Mapa</div>
+                <div class="legenda">
+                    <span style="--cor:#2e7d32">Disponível</span>
+                    <span style="--cor:#1565c0">Minha entrega</span>
+                    <span style="--cor:#e65100">Você</span>
+                </div>
+                <button type="button" id="btn-minha-posicao">📍 Atualizar minha localização</button>
+            </div>
+            <div id="mapa-entregas"></div>
+        </section>
 
         <section class="secao">
             <div class="secao-titulo">Disponíveis para entrega</div>
