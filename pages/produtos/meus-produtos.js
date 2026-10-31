@@ -22,6 +22,13 @@ import {
 
 const MAX_FOTOS_LOTE = 3;
 
+const TEXTO_STATUS = {
+    pendente: "Aguardando aprovação",
+    aprovado: "✓ Verificado",
+    reprovado: "✕ Reprovado",
+    legado: "Aguardando migração"
+};
+
 // ELEMENTOS DA DOM
 const listaProdutos = document.getElementById("lista-produtos");
 const mensagemVazia = document.getElementById("mensagem-vazia");
@@ -95,13 +102,6 @@ async function carregarProdutos() {
         listaProdutos.innerHTML = `<p class="empty-message">Não foi possível carregar seus produtos.</p>`;
     }
 }
-
-const TEXTO_STATUS = {
-    pendente: "Aguardando aprovação",
-    aprovado: "✓ Verificado",
-    reprovado: "✕ Reprovado",
-    legado: "Aguardando migração"
-};
 
 function criarCardProduto(id, produto) {
     const card = document.createElement("div");
