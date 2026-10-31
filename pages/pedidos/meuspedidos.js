@@ -1,118 +1,118 @@
 import { auth, db } from "../../public/firebase-config.js";
 import { protegerPagina } from "../shared/guarda.js";
+import { escaparHtml } from "../shared/html.js";
 
 import {
     collection,
-    doc,
-    getDoc,
     query,
     where,
     onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-const container = document.getElementById("pedidos-container");
-
-const STATUS_INFO = {
-    aguardando_confirmacao: { classe: "aguardando", texto: "Aguardando confirmação" },
-    preparo:  { classe: "preparo",  texto: "Em preparo" },
-    entrega:  { classe: "entrega",  texto: "Saiu para entrega" },
-    entregue: { classe: "entregue", texto: "Entregue" }
-};
-
-const cacheLojas = {};
-
+const containerPedidos = document.getElementById("grid-pedidos") || document.getElementById("lista-pedidos");
 const { usuario } = await protegerPagina({ tipos: ["cliente"] });
 const usuarioAtual = usuario;
 
-escutarPedidos();
+escutarMeusPedidos();
 
+function escutarMeusPedidos() {
+    if (!containerPedidos) return;
 
-function escutarPedidos() {
-    const pedidosRef = collection(db, "pedidos");
-    const consulta = query(pedidosRef, where("cliente_id", "==", usuarioAtual.uid));
+    containerPedidos.innerHTML = `<p class="empty-message">Carregando seus pedidos...</p>`;
 
-    onSnapshot(consulta, async (resultado) => {
+    const consulta = query(
+        collection(db, "pedidos"),
+        where("cliente_id", "==", usuarioAtual.uid)
+    );
 
-        if (resultado.empty) {
-            container.innerHTML = `<p class="empty-message">Você ainda não fez nenhum pedido.</p>`;
+    onSnapshot(consulta, (snapshot) => {
+        if (snapshot.empty) {
+            containerPedidos.innerHTML = `<p class="empty-message">Você ainda não realizou nenhum pedido.</p>`;
             return;
         }
 
-        const pedidosOrdenados = resultado.docs.sort((a, b) => {
+        containerPedidos.innerHTML = "";
+
+        // Ordenar os pedidos do mais recente para o mais antigo
+        const docsOrdenados = snapshot.docs.sort((a, b) => {
             const dataA = a.data().data_hora_pedido?.toDate?.() || new Date(0);
             const dataB = b.data().data_hora_pedido?.toDate?.() || new Date(0);
             return dataB - dataA;
         });
 
-        const cards = [];
-
-        for (const docSnap of pedidosOrdenados) {
-            cards.push(await criarCardPedido(docSnap.id, docSnap.data()));
-        }
-
-        container.innerHTML = "";
-        cards.forEach((card) => container.appendChild(card));
+        docsOrdenados.forEach((docSnap) => {
+            const pedido = docSnap.data();
+            const card = criarCardPedido(docSnap.id, pedido);
+            containerPedidos.appendChild(card);
+        });
 
     }, (erro) => {
-        console.error("Erro ao escutar pedidos:", erro);
-        container.innerHTML = `<p class="empty-message">Não foi possível carregar seus pedidos.</p>`;
+        console.error("Erro ao carregar pedidos do cliente:", erro);
+        containerPedidos.innerHTML = `<p class="empty-message">Erro ao carregar seus pedidos.</p>`;
     });
 }
 
-
-async function criarCardPedido(id, pedido) {
-    const statusInfo = STATUS_INFO[pedido.status] || STATUS_INFO.aguardando_confirmacao;
-
-    const dataFormatada = pedido.data_hora_pedido?.toDate
-        ? pedido.data_hora_pedido.toDate().toLocaleDateString("pt-BR")
-        : "";
-
-    const itensTexto = pedido.itens.map((item) => `${item.quantidade}x ${item.nome}`).join(", ");
-
-    let nomeLoja = cacheLojas[pedido.comerciante_id];
-
-    if (!nomeLoja) {
-        try {
-            const refLoja = doc(db, "lojas", pedido.comerciante_id);
-            const docLoja = await getDoc(refLoja);
-            nomeLoja = docLoja.exists() ? (docLoja.data().nome_loja || "Loja") : "Loja";
-        } catch {
-            nomeLoja = "Loja";
-        }
-        cacheLojas[pedido.comerciante_id] = nomeLoja;
-    }
-
+function criarCardPedido(id, pedido) {
     const card = document.createElement("div");
-    card.className = "pedido-card";
+    card.className = "card-pedido";
+
+    // Formatação da data do pedido
+    const dataObj = pedido.data_hora_pedido?.toDate ? pedido.data_hora_pedido.toDate() : null;
+    const dataFormatada = dataObj 
+        ? dataObj.toLocaleDateString("pt-BR") 
+        : "Data indisponível";
+
+    // Mapeamento de status para exibição
+    const labelsStatus = {
+        aguardando_confirmacao: "Aguardando confirmação",
+        preparo: "Em preparo",
+        entrega: "Saiu para entrega",
+        entregue: "Entregue"
+    };
+
+    const statusTexto = labelsStatus[pedido.status] || pedido.status;
+
+    // Formatação da lista de itens
+    const itensTexto = (pedido.itens || []).map((item) => {
+        return `${escaparHtml(item.quantidade)}x ${escaparHtml(item.nome)}`;
+    }).join(", ");
+
+    const valorTotal = Number(pedido.valor_total || 0).toFixed(2).replace(".", ",");
+
+    // LER O CÓDIGO DIRETO DA RAIZ DO DOCUMENTO (codigo_entrega)
+    const codigoEntrega = pedido.codigo_entrega;
+    const deveExibirCodigo = (pedido.status === "preparo" || pedido.status === "entrega") && codigoEntrega;
+
+    const blocoCodigoHtml = deveExibirCodigo ? `
+        <div class="codigo-retirada" style="margin-top: 12px; background-color: #e3f0fd; color: #1565c0; border: 1px solid #bbdefb; border-radius: 8px; padding: 12px; text-align: center;">
+            <span style="font-size: 13px; font-weight: 600;">Informe este código ao entregador:</span><br>
+            <strong style="font-size: 22px; letter-spacing: 4px; color: #0d47a1;">${escaparHtml(codigoEntrega)}</strong>
+        </div>
+    ` : "";
 
     card.innerHTML = `
-        <div class="pedido-topo">
-            <h2>Pedido</h2>
-            <span class="status ${statusInfo.classe}">${statusInfo.texto}</span>
+        <div class="card-pedido-topo">
+            <div>
+                <div class="cliente-nome">Pedido</div>
+                <div class="pedido-data">Data: ${dataFormatada}</div>
+            </div>
+            <span class="status-badge status-${escaparHtml(pedido.status)}">
+                ${escaparHtml(statusTexto)}
+            </span>
         </div>
 
-        <div class="pedido-info">
-            <p><strong>Data:</strong> ${dataFormatada}</p>
-            <p><strong>Itens:</strong> ${itensTexto}</p>
-            <p><strong>Loja:</strong> ${nomeLoja}</p>
-            <p class="pedido-valor"><strong>Total:</strong> R$ ${Number(pedido.valor_total).toFixed(2).replace(".", ",")}</p>
+        <div class="card-pedido-itens">
+            <p><strong>Itens:</strong> ${itensTexto || "Nenhum item"}</p>
+            <p><strong>Loja:</strong> ${escaparHtml(pedido.nome_loja || "Estabelecimento")}</p>
         </div>
 
-        ${pedido.status === "entrega" ? `
-        <p class="codigo-entrega">
-            Informe este código ao entregador: <strong class="valor-codigo-entrega">...</strong>
-        </p>
-        ` : ""}
+        <div class="pedido-total">
+            <span>Total:</span>
+            <span>R$ ${valorTotal}</span>
+        </div>
+
+        ${blocoCodigoHtml}
     `;
-
-    const elementoCodigo = card.querySelector(".valor-codigo-entrega");
-    if (elementoCodigo) {
-        getDoc(doc(db, "pedidos", id, "privado", "codigo_entrega"))
-            .then((snap) => {
-                elementoCodigo.textContent = snap.exists() ? snap.data().codigo : "indisponível";
-            })
-            .catch(() => { elementoCodigo.textContent = "indisponível"; });
-    }
 
     return card;
 }
