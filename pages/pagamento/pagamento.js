@@ -94,7 +94,8 @@ function renderizarResumo() {
             <span>R$ ${total.toFixed(2).replace(".", ",")}</span>
         </div>
         <p class="resumo-endereco">
-            ${enderecoEscolhido.logradouro}, ${enderecoEscolhido.numero} - ${enderecoEscolhido.bairro}, ${enderecoEscolhido.cidade}/${enderecoEscolhido.estado}
+            ${enderecoEscolhido.logradouro}, ${enderecoEscolhido.numero}<br>
+            ${enderecoEscolhido.bairro}, ${enderecoEscolhido.cidade}/${enderecoEscolhido.estado}
         </p>
     `;
 
@@ -128,7 +129,7 @@ botaoConfirmar.addEventListener("click", async () => {
         
         await runTransaction(db, async (transaction) => {
 
-        
+            // 1. LEITURA E VERIFICAÇÃO DE ESTOQUE
             const leiturasEstoque = await Promise.all(
                 itensSelecionados.map((item) => {
                     const idProduto = item.produto_id || item.id;
@@ -148,7 +149,7 @@ botaoConfirmar.addEventListener("click", async () => {
                 }
             });
 
-            // 3. ABATE DE ESTOQUE
+            // 2. ABATE DE ESTOQUE
             leiturasEstoque.forEach((docSnap, idx) => {
                 const item = itensSelecionados[idx];
                 const refProd = docSnap.ref;
@@ -156,6 +157,7 @@ botaoConfirmar.addEventListener("click", async () => {
                 transaction.update(refProd, { estoque: novoEstoque });
             });
 
+            // 3. GRAVAÇÃO DO PEDIDO (COM OS CÓDIGOS INCLUÍDOS NA RAIZ)
             transaction.set(pedidoRef, {
                 cliente_id: usuarioAtual.uid,
                 comerciante_id: comercianteId,
@@ -174,16 +176,12 @@ botaoConfirmar.addEventListener("click", async () => {
                 data_hora_pedido: new Date(),
                 valor_total: valorTotal,
                 tipo_entrega: "entrega",
-                status: "aguardando_confirmacao"
+                status: "aguardando_confirmacao",
+                codigo_retirada: gerarCodigo(), 
+                codigo_entrega: gerarCodigo()  
             });
 
-            // 5. CÓDIGO PRIVADO DO PEDIDO
-            const refCodigo = doc(db, "pedidos", pedidoRef.id, "privado", "codigo_entrega");
-            transaction.set(refCodigo, {
-                codigo: gerarCodigo()
-            });
-
-            // 6. ATUALIZAÇÃO DO CARRINHO
+            // 4. ATUALIZAÇÃO DO CARRINHO
             if (itensRestantes.length === 0) {
                 transaction.delete(refCarrinho);
             } else {
