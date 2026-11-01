@@ -16,6 +16,7 @@ import {
     getDoc,
     doc,
     updateDoc,
+    deleteField,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import { signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
@@ -36,7 +37,6 @@ let produtos = [];
 let abaAtual = STATUS.PENDENTE;
 const cacheLojas = {};
 
-// Ajuste o segundo argumento se o seu mostrarToast usar outro formato de "tipo".
 function aviso(mensagem, tipo = "sucesso") {
     mostrarToast(mensagem, tipo);
 }
@@ -58,8 +58,6 @@ async function nomeDaLoja(id) {
     return cacheLojas[id];
 }
 
-// O formato de checklist_consumivel pode ser objeto {chave: true/false}
-// ou lista. Este leitor aceita os dois; ajuste se o seu for diferente.
 function itensChecklist(checklist) {
     if (!checklist) return [];
 
@@ -81,7 +79,6 @@ function itensChecklist(checklist) {
         proprio_para_consumo: "Declara próprio para consumo"
     };
 
-    // Só campos booleanos entram (confirmado_em é data, não item)
     return Object.entries(checklist)
         .filter(([, valor]) => typeof valor === "boolean")
         .map(([chave, valor]) => ({
@@ -90,7 +87,41 @@ function itensChecklist(checklist) {
         }));
 }
 
-// Fotos do lote ficam na subcoleção produtos/{id}/inspecao (só admin e dono leem)
+// CÁLCULO DA CONTAGEM REGRESSIVA PARA O ADMIN
+function calcularTempoRestanteAdmin(dataExpiracaoIso) {
+    if (!dataExpiracaoIso) return { texto: "", expirado: false, cor: "#666" };
+
+    const agora = new Date();
+    const dataExpira = new Date(dataExpiracaoIso);
+    const diffMs = dataExpira - agora;
+
+    if (diffMs <= 0) {
+        return {
+            texto: `✕ Validade expirada em ${dataExpira.toLocaleDateString("pt-BR")}`,
+            expirado: true,
+            cor: "#c62828"
+        };
+    }
+
+    const horasTotais = Math.floor(diffMs / (1000 * 60 * 60));
+    const dias = Math.floor(horasTotais / 24);
+    const horasRestantes = horasTotais % 24;
+
+    if (dias > 0) {
+        return {
+            texto: `⌛ Validade: restam ${dias} dia(s) e ${horasRestantes}h (expira em ${dataExpira.toLocaleDateString("pt-BR")})`,
+            expirado: false,
+            cor: "#2e7d32"
+        };
+    }
+
+    return {
+        texto: `⚠️ Expira hoje! Restam apenas ${horasRestantes} hora(s)`,
+        expirado: false,
+        cor: "#e65100"
+    };
+}
+
 async function carregarFotosLote(card, botao) {
     const destino = card.querySelector(".adm-inspecao-fotos");
     botao.disabled = true;
@@ -160,6 +191,12 @@ function acoesHtml(p, status) {
                 <button type="button" class="adm-btn adm-btn-ia" data-acao="ia" ${p.imagem ? "" : "disabled"}>
                     ${p.parecer_ia ? "Analisar de novo com IA" : "Analisar com IA"}
                 </button>
+                
+                <div style="margin: 10px 0; text-align: left;">
+                    <label style="font-size: 13px; font-weight: 600; color: #444;">Validade da aprovação (dias):</label>
+                    <input type="number" class="adm-dias-validade" value="7" min="1" max="90" style="width: 70px; padding: 4px; margin-left: 6px; border: 1px solid #ccc; border-radius: 4px;" />
+                </div>
+
                 <textarea class="adm-obs" maxlength="300"
                     placeholder="Observação para o comerciante (obrigatória para reprovar)"></textarea>
                 <div class="adm-linha-botoes">
@@ -169,10 +206,20 @@ function acoesHtml(p, status) {
             </div>`;
     }
 
+    let infoValidade = "";
+    if (status === STATUS.APROVADO && p.expira_em) {
+        const info = calcularTempoRestanteAdmin(p.expira_em);
+        infoValidade = `<br><span style="font-size: 12px; font-weight: 600; color: ${info.cor}; margin-top: 4px; display: inline-block;">
+            ${escaparHtml(info.texto)}
+        </span>`;
+    }
+
     return `
         <div class="adm-acoes">
             <p class="adm-decisao"><strong>${escaparHtml(ROTULOS_STATUS[status] || status)}</strong>
-                ${p.observacao_admin ? ` · ${escaparHtml(p.observacao_admin)}` : ""}</p>
+                ${p.observacao_admin ? ` · ${escaparHtml(p.observacao_admin)}` : ""}
+                ${infoValidade}
+            </p>
             <div class="adm-linha-botoes">
                 <button type="button" class="adm-btn adm-btn-neutro" data-acao="reabrir">Reabrir (voltar para pendente)</button>
             </div>
@@ -239,8 +286,6 @@ function renderizar() {
     elLista.replaceChildren(...lista.map(criarCartao));
 }
 
-// ---------- Desempenho da IA (concordância com a decisão humana) ----------
-
 function renderDesempenho() {
     const decididos = produtos.filter((p) =>
         p.parecer_ia && [STATUS.APROVADO, STATUS.REPROVADO].includes(p.status_verificacao)
@@ -294,9 +339,6 @@ function renderDesempenho() {
             produto ruim passaria se a decisão dependesse só da IA. Por isso a decisão final é humana.</p>`;
 }
 
-
-// ---------- Chave gratuita da IA (fica só neste navegador) ----------
-
 const elIaStatus = document.getElementById("adm-ia-status");
 const elIaForm = document.getElementById("adm-ia-form");
 const elIaInput = document.getElementById("adm-chave-ia");
@@ -330,7 +372,7 @@ btnRemoverChave.addEventListener("click", () => {
 
 atualizarConfigIA();
 
-// ---------- Ações ----------
+// ---------- AÇÕES ----------
 
 async function executarIA(p, botao) {
     const textoOriginal = botao.textContent;
@@ -359,7 +401,7 @@ async function executarIA(p, botao) {
     }
 }
 
-async function decidir(p, status, observacao, botao) {
+async function decidir(p, status, observacao, diasValidade, botao) {
     const obs = observacao.trim();
 
     if (status === STATUS.REPROVADO && obs.length < 5) {
@@ -370,22 +412,34 @@ async function decidir(p, status, observacao, botao) {
     botao.disabled = true;
 
     try {
-        await updateDoc(doc(db, "produtos", p.id), {
+        const dadosAtualizacao = {
             status_verificacao: status,
             observacao_admin: obs || null,
             verificado_por: usuario.uid,
             verificado_em: serverTimestamp(),
             atualizado_em: serverTimestamp()
-        });
+        };
+
+        if (status === STATUS.APROVADO) {
+            const dias = parseInt(diasValidade, 10) || 7;
+            const dataExpiracao = new Date();
+            dataExpiracao.setDate(dataExpiracao.getDate() + dias);
+            
+            dadosAtualizacao.expira_em = dataExpiracao.toISOString();
+            dadosAtualizacao.validade_dias = dias;
+        } else {
+            dadosAtualizacao.expira_em = null;
+            dadosAtualizacao.validade_dias = null;
+        }
+
+        await updateDoc(doc(db, "produtos", p.id), dadosAtualizacao);
 
         Object.assign(p, {
-            status_verificacao: status,
-            observacao_admin: obs || null,
-            verificado_por: usuario.uid,
+            ...dadosAtualizacao,
             atualizado_em: { seconds: Math.floor(Date.now() / 1000) }
         });
 
-        aviso(status === STATUS.APROVADO ? "Produto aprovado." : "Produto reprovado.");
+        aviso(status === STATUS.APROVADO ? `Produto aprovado por ${p.validade_dias} dias.` : "Produto reprovado.");
         renderizar();
     } catch (erro) {
         console.error("Erro ao registrar decisão:", erro);
@@ -398,11 +452,15 @@ async function reabrir(p, botao) {
     botao.disabled = true;
 
     try {
-        await updateDoc(doc(db, "produtos", p.id), {
+        const refProduto = doc(db, "produtos", p.id);
+
+        await updateDoc(refProduto, {
             status_verificacao: STATUS.PENDENTE,
-            observacao_admin: null,
-            verificado_por: null,
-            verificado_em: null,
+            observacao_admin: deleteField(),
+            verificado_por: deleteField(),
+            verificado_em: deleteField(),
+            expira_em: deleteField(),
+            validade_dias: deleteField(),
             atualizado_em: serverTimestamp()
         });
 
@@ -410,12 +468,16 @@ async function reabrir(p, botao) {
             status_verificacao: STATUS.PENDENTE,
             observacao_admin: null,
             verificado_por: null,
+            verificado_em: null,
+            expira_em: null,
+            validade_dias: null,
             atualizado_em: { seconds: Math.floor(Date.now() / 1000) }
         });
 
+        aviso("Produto reaberto e retornado para a aba de pendentes!");
         renderizar();
     } catch (erro) {
-        console.error("Erro ao reabrir:", erro);
+        console.error("Erro ao reabrir produto:", erro);
         aviso("Não foi possível reabrir o produto.", "erro");
         botao.disabled = false;
     }
@@ -430,12 +492,13 @@ elLista.addEventListener("click", async (evento) => {
     if (!produto) return;
 
     const obs = card.querySelector(".adm-obs")?.value || "";
+    const diasValidade = card.querySelector(".adm-dias-validade")?.value || 7;
 
     switch (botao.dataset.acao) {
         case "inspecao": return carregarFotosLote(card, botao);
         case "ia": return executarIA(produto, botao);
-        case "aprovar": return decidir(produto, STATUS.APROVADO, obs, botao);
-        case "reprovar": return decidir(produto, STATUS.REPROVADO, obs, botao);
+        case "aprovar": return decidir(produto, STATUS.APROVADO, obs, diasValidade, botao);
+        case "reprovar": return decidir(produto, STATUS.REPROVADO, obs, diasValidade, botao);
         case "reabrir": return reabrir(produto, botao);
     }
 });
@@ -447,7 +510,6 @@ abas.forEach((aba) => {
     });
 });
 
-// Migração dos produtos antigos (sem status): confirma com um segundo clique.
 let confirmandoMigracao = false;
 
 btnMigrar.addEventListener("click", async () => {
@@ -469,9 +531,14 @@ btnMigrar.addEventListener("click", async () => {
 
     for (const p of legados) {
         try {
+            const dataExpiracao = new Date();
+            dataExpiracao.setDate(dataExpiracao.getDate() + 30);
+
             await updateDoc(doc(db, "produtos", p.id), {
                 status_verificacao: STATUS.APROVADO,
                 observacao_admin: "Cadastrado antes da verificação",
+                expira_em: dataExpiracao.toISOString(),
+                validade_dias: 30,
                 verificado_por: usuario.uid,
                 verificado_em: serverTimestamp(),
                 atualizado_em: serverTimestamp()

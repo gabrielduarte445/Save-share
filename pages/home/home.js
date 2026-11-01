@@ -172,6 +172,7 @@ async function adicionarAoCarrinho(produtoId, produto, quantidade) {
 }
 
 // CARREGAMENTO E FILTRAGEM DE PRODUTOS
+// CARREGAMENTO E FILTRAGEM DE PRODUTOS
 async function carregarProdutosDisponiveis() {
     try {
         const consultaProdutos = query(
@@ -204,13 +205,26 @@ async function carregarProdutosDisponiveis() {
             })
         );
 
+        const agora = new Date();
+
         todosProdutos = resultado.docs
             .map(docSnap => ({
                 id: docSnap.id,
                 ...docSnap.data(),
                 nomeLoja: cacheLojas[docSnap.data().comerciante_id] || "Loja"
             }))
-            .filter(produto => Number(produto.estoque) > 0);
+            .filter(produto => {
+                const temEstoque = Number(produto.estoque) > 0;
+                let naoExpirou = true;
+                if (produto.expira_em) {
+                    const dataExpira = new Date(produto.expira_em);
+                    if (agora > dataExpira) {
+                        naoExpirou = false; // Expirado!
+                    }
+                }
+
+                return temEstoque && naoExpirou;
+            });
 
         aplicarFiltros();
 

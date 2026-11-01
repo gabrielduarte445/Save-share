@@ -23,7 +23,7 @@ import {
 const MAX_FOTOS_LOTE = 3;
 
 const TEXTO_STATUS = {
-    pendente: "Aguardando aprovação",
+    pendente: "⏳ Em Análise",
     aprovado: "✓ Verificado",
     reprovado: "✕ Reprovado",
     legado: "Aguardando migração"
@@ -102,7 +102,33 @@ async function carregarProdutos() {
         listaProdutos.innerHTML = `<p class="empty-message">Não foi possível carregar seus produtos.</p>`;
     }
 }
+function calcularTempoRestanteComerciante(dataExpiracaoIso) {
+    if (!dataExpiracaoIso) return { texto: "", expirado: false };
 
+    const agora = new Date();
+    const dataExpira = new Date(dataExpiracaoIso);
+    const diffMs = dataExpira - agora;
+
+    if (diffMs <= 0) {
+        return {
+            texto: `✕ A aprovação deste produto expirou em ${dataExpira.toLocaleDateString("pt-BR")}. Edite para reenviar.`,
+            expirado: true
+        };
+    }
+
+    const horasTotais = Math.floor(diffMs / (1000 * 60 * 60));
+    const dias = Math.floor(horasTotais / 24);
+    const horasRestantes = horasTotais % 24;
+
+    let texto = "";
+    if (dias > 0) {
+        texto = `⌛ Aprovação válida por mais ${dias} dia(s) e ${horasRestantes}h (expira em ${dataExpira.toLocaleDateString("pt-BR")})`;
+    } else {
+        texto = `⚠️ Aprovação expira hoje! Restam apenas ${horasRestantes} hora(s)`;
+    }
+
+    return { texto, expirado: false };
+}
 function criarCardProduto(id, produto) {
     const card = document.createElement("div");
     card.className = "card-produto";
@@ -117,15 +143,37 @@ function criarCardProduto(id, produto) {
         classeEstoque = "estoque-baixo";
     }
 
-    const status = produto.status_verificacao || "legado";
+let status = produto.status_verificacao || "legado";
+    let textoBadge = TEXTO_STATUS[status] || status;
+    let classeBadge = `status-${status}`;
+    let avisoExpirado = "";
+    if (status === "aprovado" && produto.expira_em) {
+        const infoValidade = calcularTempoRestanteComerciante(produto.expira_em);
 
+        if (infoValidade.expirado) {
+            textoBadge = "⚠ Validade Expirada";
+            classeBadge = "status-expirado";
+            avisoExpirado = `<p class="obs-expirado" style="color: #c62828; font-size: 12px; margin-top: 4px; font-weight: 500;">
+                ${escaparHtml(infoValidade.texto)}
+            </p>`;
+        } else {
+            avisoExpirado = `<p class="obs-validade" style="color: #2e7d32; font-size: 12px; margin-top: 4px;">
+                ${escaparHtml(infoValidade.texto)}
+            </p>`;
+        }
+    }
     const valorFormatado = new Intl.NumberFormat("pt-BR", {
         style: "currency",
         currency: "BRL"
     }).format(produto.valor || 0);
 
     const motivo = status === "reprovado" && produto.observacao_admin
-        ? `<p class="obs-reprovado">Motivo: ${escaparHtml(produto.observacao_admin)}</p>`
+        ? `<p class="obs-reprovado" style="color: #c62828; font-size: 13px; margin-top: 6px;"><strong>Motivo da reprovação:</strong> ${escaparHtml(produto.observacao_admin)}</p>`
+        : "";
+
+    // Mensagem informativa quando o produto estiver pendente (novo ou reaberto pelo admin)
+    const avisoPendente = status === "pendente"
+        ? `<p class="obs-pendente" style="color: #1565c0; font-size: 12px; margin-top: 4px;">Este produto está na fila de análise da administração.</p>`
         : "";
 
     card.innerHTML = `
@@ -134,11 +182,13 @@ function criarCardProduto(id, produto) {
         </div>
 
         <div class="informacoes-produto">
-            <span class="status-badge-card status-${escaparHtml(status)}">${escaparHtml(TEXTO_STATUS[status] || status)}</span>
+            <span class="status-badge-card ${escaparHtml(classeBadge)}">${escaparHtml(textoBadge)}</span>
             <h3>${escaparHtml(produto.nome)}</h3>
             <p class="preco">${escaparHtml(valorFormatado)}</p>
             <p class="estoque ${classeEstoque}">${escaparHtml(textoEstoque)}</p>
             ${motivo}
+            ${avisoPendente}
+            ${avisoExpirado}
         </div>
 
         <div class="acoes">
