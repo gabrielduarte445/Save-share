@@ -6,7 +6,8 @@ import {
     GoogleAuthProvider,
     setPersistence,
     browserLocalPersistence,
-    browserSessionPersistence
+    browserSessionPersistence,
+    sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 import {
@@ -14,6 +15,7 @@ import {
     getDoc
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
+auth.languageCode = "pt-BR";
 
 const formulario = document.querySelector(".form-login");
 const campoEmail = document.getElementById("email");
@@ -23,6 +25,14 @@ const checkboxLembrar = document.getElementById("lembrar-de-mim");
 const botaoToggleSenha = document.getElementById("btn-toggle-senha");
 const iconeOlho = document.getElementById("icone-olho");
 const botaoGoogle = document.getElementById("btn-google");
+
+const linkEsqueciSenha = document.getElementById("link-esqueci-senha");
+const modalRecuperar = document.getElementById("modal-recuperar");
+const btnFecharModalRecuperar = document.getElementById("btn-fechar-modal-recuperar");
+const formRecuperar = document.getElementById("form-recuperar-senha");
+const campoEmailRecuperacao = document.getElementById("email-recuperacao");
+const btnEnviarRecuperacao = document.getElementById("btn-enviar-recuperacao");
+const feedbackRecuperar = document.getElementById("feedback-recuperar");
 
 botaoToggleSenha.addEventListener("click", () => {
 
@@ -40,14 +50,104 @@ botaoToggleSenha.addEventListener("click", () => {
     );
 });
 
+// ---------- MODAL DE RECUPERAÇÃO DE SENHA ----------
+function abrirModalRecuperar() {
+    feedbackRecuperar.style.display = "none";
+    removerErro(campoEmailRecuperacao);
+
+    // Se o usuário já preencheu o e-mail no login, aproveita no campo de recuperação
+    if (campoEmail.value.trim()) {
+        campoEmailRecuperacao.value = campoEmail.value.trim();
+    } else {
+        campoEmailRecuperacao.value = "";
+    }
+
+    modalRecuperar.style.display = "flex";
+    campoEmailRecuperacao.focus();
+}
+
+function fecharModalRecuperar() {
+    modalRecuperar.style.display = "none";
+    feedbackRecuperar.style.display = "none";
+    removerErro(campoEmailRecuperacao);
+}
+
+linkEsqueciSenha.addEventListener("click", (e) => {
+    e.preventDefault();
+    abrirModalRecuperar();
+});
+
+btnFecharModalRecuperar.addEventListener("click", fecharModalRecuperar);
+
+modalRecuperar.addEventListener("click", (e) => {
+    if (e.target === modalRecuperar) {
+        fecharModalRecuperar();
+    }
+});
+
+formRecuperar.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    removerErro(campoEmailRecuperacao);
+    feedbackRecuperar.style.display = "none";
+
+    const email = campoEmailRecuperacao.value.trim();
+
+    if (!email) {
+        mostrarErro(campoEmailRecuperacao, "Digite seu e-mail cadastrado.");
+        campoEmailRecuperacao.focus();
+        return;
+    }
+
+    const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!emailValido) {
+        mostrarErro(campoEmailRecuperacao, "Esse e-mail não parece válido.");
+        campoEmailRecuperacao.focus();
+        return;
+    }
+
+    const textoOriginal = btnEnviarRecuperacao.textContent;
+    btnEnviarRecuperacao.disabled = true;
+    btnEnviarRecuperacao.textContent = "Enviando...";
+
+    try {
+        await sendPasswordResetEmail(auth, email);
+
+        feedbackRecuperar.style.display = "block";
+        feedbackRecuperar.style.backgroundColor = "#e8f5e9";
+        feedbackRecuperar.style.color = "#2e7d32";
+        feedbackRecuperar.style.border = "1px solid #a5d6a7";
+        feedbackRecuperar.textContent = "✓ Link enviado! Verifique sua caixa de entrada e a pasta de spam.";
+
+        formRecuperar.reset();
+
+    } catch (erro) {
+        console.error("Erro ao enviar recuperação:", erro);
+
+        const mensagens = {
+            "auth/invalid-email": "Esse e-mail não parece válido.",
+            "auth/user-not-found": "Não encontramos nenhuma conta cadastrada com esse e-mail.",
+            "auth/too-many-requests": "Muitas tentativas seguidas. Aguarde alguns minutos.",
+            "auth/network-request-failed": "Falha de conexão. Verifique sua internet."
+        };
+
+        mostrarErro(
+            campoEmailRecuperacao,
+            mensagens[erro.code] || "Não foi possível enviar o e-mail de recuperação. Tente novamente."
+        );
+    } finally {
+        btnEnviarRecuperacao.disabled = false;
+        btnEnviarRecuperacao.textContent = textoOriginal;
+    }
+});
+
+
 function destinoDoTipo(tipo) {
     if (tipo === "admin") return "../../admin/admin.html";
     if (tipo === "entregador") return "../../public/pedidos_disponiveis.html";
     return "../../public/home.html";
 }
 
-// A persistência é definida ANTES do clique: um await antes do popup
-// pode fazer o navegador bloquear a janela do Google.
 function aplicarPersistencia() {
     const persistencia = checkboxLembrar.checked
         ? browserLocalPersistence
@@ -81,6 +181,7 @@ botaoGoogle.addEventListener("click", async () => {
             return;
         }
 
+        const dadosUsuario = snap.data();
         const tipoDaConta = String(dadosUsuario.tipo_usuario || "").trim();
 
         if (tipoDaConta === "admin") {
@@ -144,7 +245,6 @@ function mostrarErro(campo, mensagem) {
     campo.style.border = "1px solid #d32f2f";
 }
 
-
 function removerErro(campo) {
 
     const container = campo.closest(".input-container");
@@ -156,7 +256,6 @@ function removerErro(campo) {
 
     campo.style.border = "";
 }
-
 
 formulario.addEventListener("submit", async (event) => {
 
@@ -189,14 +288,12 @@ formulario.addEventListener("submit", async (event) => {
     }
 
     try {
-        // LEMBRAR DE MIM
         const persistencia = checkboxLembrar.checked
             ? browserLocalPersistence
             : browserSessionPersistence;
 
         await setPersistence(auth, persistencia);
 
-        // LOGIN FIREBASE
         const resultado = await signInWithEmailAndPassword(auth, email, senha);
         const usuario = resultado.user;
 
@@ -252,6 +349,6 @@ formulario.addEventListener("submit", async (event) => {
             return;
         }
 
-        String(mostrarErro(campoEmail, "Algo deu errado ao entrar. Tente novamente em instantes."));
+        mostrarErro(campoEmail, "Algo deu errado ao entrar. Tente novamente em instantes.");
     }
 });
