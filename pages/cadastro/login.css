@@ -1,15 +1,13 @@
 /* ==========================================================================
    LOGIN / CADASTRO — mesmo visual da landing page (Save & Share)
-   Substitui o conteúdo de /pages/cadastro/login.css
    ========================================================================== */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Playfair+Display:wght@600;700&display=swap");
 
-/* Paleta e tokens da landing */
 .body-login {
     --bg: #f7f8f9;
     --card: #ffffff;
     --line: #eaedf0;
-    --input: #dcdcdc;
+    --input: #eef1f4;
     --green: #2e7d32;
     --green-d: #1b5e20;
     --green-l: #e8f5e9;
@@ -18,25 +16,26 @@
     --head: #222222;
     --mut: #757575;
     --err: #d32f2f;
-    --shadow: 0 1px 2px rgba(16, 40, 20, .04), 0 12px 32px rgba(16, 40, 20, .07);
+    --shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
     --serif: 'Playfair Display', Georgia, serif;
     --sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
     position: relative;
     min-height: 100dvh;
-    display: grid;
-    place-items: center;
-    padding: clamp(20px, 5vw, 48px) 16px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 20px 24px 20px clamp(24px, 8vw, 130px);
     overflow-x: hidden;
     font-family: var(--sans);
     color: var(--txt);
-    line-height: 1.6;
+    line-height: 1.5;
     -webkit-text-size-adjust: 100%;
-    /* mesmo fundo do hero da landing */
+
+    /* Fundo com imagembanner.png alinhado à direita */
     background:
-        radial-gradient(90% 80% at 85% 0, #d9efdb 0, transparent 62%),
-        radial-gradient(70% 70% at 0 100%, #eaf6eb 0, transparent 60%),
-        var(--bg);
+        linear-gradient(90deg, rgba(16, 40, 20, 0.78) 0%, rgba(16, 40, 20, 0.28) 55%, rgba(16, 40, 20, 0.1) 100%),
+        url("../../imagens/imagembanner.png") no-repeat right center / cover fixed;
 }
 
 .body-login *,
@@ -45,67 +44,38 @@
     box-sizing: border-box;
 }
 
-/* Orbes desfocados do hero (sem mexer no HTML) */
-.body-login::before,
-.body-login::after {
-    content: "";
-    position: fixed;
-    z-index: 0;
-    border-radius: 50%;
-    filter: blur(80px);
-    opacity: .5;
-    pointer-events: none;
-    animation: drift 14s ease-in-out infinite alternate;
-}
-.body-login::before {
-    width: 340px;
-    height: 340px;
-    background: #a5d6a7;
-    top: -90px;
-    left: -90px;
-}
-.body-login::after {
-    width: 300px;
-    height: 300px;
-    background: #c8e6c9;
-    bottom: -70px;
-    right: 12%;
-    animation-delay: -6s;
-}
-@keyframes drift {
-    to { transform: translate(50px, 40px) scale(1.15); }
-}
-
 .body-login :focus-visible {
     outline: 2px solid var(--green);
     outline-offset: 3px;
 }
 
-/* ===== Card ===== */
 .card-login {
     position: relative;
     z-index: 1;
     width: min(440px, 100%);
-    padding: clamp(28px, 5vw, 40px) clamp(22px, 5vw, 36px) 28px;
+    padding: 26px 32px;
     background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 16px;
+    border-radius: 20px;
     box-shadow: var(--shadow);
-    animation: rise .8s cubic-bezier(.2, .7, .2, 1) both;
-}
-@keyframes rise {
-    from { opacity: 0; transform: translateY(24px); }
+    animation: rise .6s cubic-bezier(.2, .7, .2, 1) both;
 }
 
-/* ===== Logo e títulos ===== */
+@keyframes rise {
+    from { opacity: 0; transform: translateY(16px); }
+}
+
+/* ===== Logo e Títulos ===== */
 .logo-container {
     display: flex;
-    justify-content: center;
-    margin-bottom: 18px;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
 }
+
 .logo-icon {
-    width: 72px;
-    height: 72px;
+    width: 48px;
+    height: 48px;
     object-fit: cover;
     border-radius: 50%;
     box-shadow: 0 0 0 3px var(--green-l);
@@ -113,33 +83,29 @@
 
 .card-login .titulo,
 .card-login .container h1 {
-    font-family: var(--serif);
-    font-weight: 700;
-    font-size: clamp(1.8rem, 6vw, 2.2rem);
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: 1.55rem !important;
     line-height: 1.2;
-    text-align: center;
-    color: var(--green-d);
-    margin: 0 0 6px;
+    text-align: left;
+    color: var(--head);
+    margin: 0 0 4px;
 }
-/* barrinha em degradê, igual aos títulos da landing */
+
 .card-login .titulo::after,
 .card-login .container h1::after {
-    content: "";
-    display: block;
-    width: 56px;
-    height: 4px;
-    border-radius: 4px;
-    background: linear-gradient(90deg, var(--green), var(--green-m));
-    margin: 12px auto 0;
+    display: none;
 }
-.card-login .container { margin-bottom: 8px; }
-.card-login .container h1 { font-size: clamp(1.7rem, 6vw, 2rem) !important; }
+
+.card-login .container {
+    margin-bottom: 6px;
+}
 
 .subtitulo {
-    text-align: center;
+    text-align: left;
     color: var(--mut);
-    font-size: .95rem;
-    margin: 12px 0 26px;
+    font-size: 0.88rem;
+    margin: 0 0 16px;
 }
 
 /* ===== Formulário ===== */
@@ -150,19 +116,24 @@
 }
 
 .form-grupo {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
+
 .form-grupo > label,
 .form-grupo > p {
     display: block;
-    margin: 0 0 8px;
-    font-size: .88rem;
+    margin: 0 0 5px;
+    font-size: 0.8rem;
     font-weight: 600;
-    color: var(--txt);
+    color: var(--mut);
 }
-.flex-1 { flex: 1; min-width: 0; }
 
-/* ===== Campos (iguais aos da landing) ===== */
+.flex-1 {
+    flex: 1;
+    min-width: 0;
+}
+
+
 .input-container {
     position: relative;
     display: flex;
@@ -172,35 +143,41 @@
 .input-container input,
 .input-container select {
     width: 100%;
-    padding: 14px 16px;
-    border-radius: 10px;
-    border: 1px solid var(--input);
-    background: #fff;
+    padding: 11px 14px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    background: var(--input);
     color: var(--txt);
     font: inherit;
-    font-size: .95rem;
+    font-size: 0.9rem;
     font-weight: 400;
-    transition: border-color .2s, box-shadow .2s;
+    transition: border-color .2s, background-color .2s, box-shadow .2s;
 }
-.input-container input::placeholder { color: #9a9a9a; }
+
+.input-container input::placeholder {
+    color: #8c96a0;
+}
+
 .input-container input:focus,
 .input-container select:focus {
     outline: none;
+    background: #fff;
     border-color: var(--green);
     box-shadow: 0 0 0 3px rgba(46, 125, 50, .15);
 }
 
-/* Login: com ícone à esquerda e botão do olho à direita */
 .input-container:not(.sem-icone) input {
-    padding-left: 44px;
-    padding-right: 46px;
+    padding-left: 42px;
+    padding-right: 42px;
 }
+
 .input-icon {
     position: absolute;
-    left: 15px;
-    width: 18px;
-    height: 18px;
+    left: 14px;
+    width: 17px;
+    height: 17px;
     pointer-events: none;
+    opacity: 0.75;
 }
 
 .btn-toggle-senha {
@@ -208,8 +185,8 @@
     right: 6px;
     top: 50%;
     transform: translateY(-50%);
-    width: 34px;
-    height: 34px;
+    width: 32px;
+    height: 32px;
     display: grid;
     place-items: center;
     padding: 0;
@@ -219,32 +196,45 @@
     cursor: pointer;
     transition: background-color .2s;
 }
-.btn-toggle-senha:hover { background: var(--green-l); }
-.btn-toggle-senha:hover svg { stroke: var(--green); }
 
-/* ===== Esqueci a senha / lembrar de mim ===== */
+.btn-toggle-senha:hover {
+    background: rgba(46, 125, 50, 0.1);
+}
+
+.btn-toggle-senha:hover svg {
+    stroke: var(--green);
+}
+
 .esqueci-senha-container {
     text-align: right;
-    margin-top: 8px;
+    margin-top: 5px;
 }
+
 .link-esqueci {
-    font-size: .82rem;
+    font-size: 0.8rem;
     font-weight: 600;
     color: var(--green);
     text-decoration: none;
 }
-.link-esqueci:hover { text-decoration: underline; }
 
-.form-grupo-checkbox { margin-bottom: 18px; }
+.link-esqueci:hover {
+    text-decoration: underline;
+}
+
+.form-grupo-checkbox {
+    margin-bottom: 12px;
+}
+
 .checkbox-lembrar {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: .9rem;
+    font-size: 0.85rem;
     color: var(--txt);
     cursor: pointer;
     user-select: none;
 }
+
 .checkbox-lembrar input[type="checkbox"] {
     width: 16px;
     height: 16px;
@@ -252,29 +242,32 @@
     cursor: pointer;
 }
 
-/* ===== Seletor de tipo de usuário (igual ao .role da landing) ===== */
+/* ===== Seletor de Tipo de Usuário ===== */
 .tipo-usuario-options {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
 }
+
 .btn-tipo {
     display: block;
-    padding: 12px 6px;
+    padding: 9px 6px;
     text-align: center;
-    border: 1px solid var(--input);
+    border: 1px solid #dcdcdc;
     border-radius: 10px;
     background: #fff;
-    font-size: .88rem;
+    font-size: 0.84rem;
     font-weight: 600;
     color: var(--txt);
     cursor: pointer;
     transition: all .2s;
 }
+
 .btn-tipo:hover {
     border-color: var(--green);
     background: var(--green-l);
 }
+
 #cliente:checked + label[for="cliente"],
 #comerciante:checked + label[for="comerciante"],
 #entregador:checked + label[for="entregador"] {
@@ -282,42 +275,45 @@
     background: var(--green-l);
     color: var(--green-d);
 }
-.tipo-usuario-options input:focus-visible + label {
-    outline: 2px solid var(--green);
-    outline-offset: 2px;
-}
 
 /* ===== Botões ===== */
 .btn-entrar {
     width: 100%;
     margin-top: 4px;
-    padding: 14px 28px;
+    padding: 12px 24px;
     border: 0;
-    border-radius: 10px;
+    border-radius: 999px;
     background: var(--green);
     color: #fff;
     font: inherit;
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
     box-shadow: 0 8px 20px rgba(46, 125, 50, .28);
     transition: transform .2s, background .2s, box-shadow .2s;
 }
+
 .btn-entrar:hover {
     background: var(--green-d);
     transform: translateY(-2px);
     box-shadow: 0 12px 26px rgba(46, 125, 50, .38);
 }
-.btn-entrar:disabled { opacity: .6; cursor: wait; transform: none; }
+
+.btn-entrar:disabled {
+    opacity: .6;
+    cursor: wait;
+    transform: none;
+}
 
 .divisor-ou {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin: 20px 0 16px;
+    margin: 12px 0 10px;
     color: #999999;
-    font-size: .82rem;
+    font-size: 0.8rem;
 }
+
 .divisor-ou::before,
 .divisor-ou::after {
     content: "";
@@ -326,50 +322,142 @@
     background: var(--line);
 }
 
-/* mesmo estilo do botão "ghost" da landing */
 .btn-google {
     width: 100%;
-    padding: 13px 22px;
+    padding: 10px 18px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
     font: inherit;
-    font-size: .95rem;
+    font-size: 0.9rem;
     font-weight: 600;
-    color: var(--green);
+    color: var(--txt);
     background: #fff;
-    border: 1px solid var(--input);
-    border-radius: 10px;
+    border: 1px solid #dcdcdc;
+    border-radius: 999px;
     cursor: pointer;
     transition: border-color .2s, background .2s;
 }
+
 .btn-google:hover {
     border-color: var(--green);
     background: var(--green-l);
 }
-.btn-google:disabled { opacity: .6; cursor: not-allowed; }
+
+.btn-google:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
 
 .texto-cadastro {
-    margin: 22px 0 0;
+    margin: 14px 0 0;
     text-align: center;
-    font-size: .88rem;
+    font-size: 0.85rem;
     color: var(--mut);
 }
+
 .link-cadastro {
     color: var(--green);
     font-weight: 600;
     text-decoration: none;
 }
-.link-cadastro:hover { text-decoration: underline; }
 
-/* ===== Cadastro ===== */
-.form-row {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
+.link-cadastro:hover {
+    text-decoration: underline;
 }
-.campos-tipo { margin: 0; }
+/* ==========================================================================
+   AJUSTE FINO EXCLUSIVO DO LOGIN (Tela única sem rolagem)
+   ========================================================================== */
+.body-login:has(.form-login) {
+    height: 100dvh;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    overflow: hidden;
+}
+
+.card-login:has(.form-login) {
+    width: min(410px, 100%);
+    max-height: 95dvh;
+    padding: 20px 28px;
+    overflow-y: auto;
+}
+
+.card-login:has(.form-login) .form-grupo {
+    margin-bottom: 10px;
+}
+
+.card-login:has(.form-login) .input-container input {
+    padding-top: 9px;
+    padding-bottom: 9px;
+}
+
+.card-login:has(.form-login) .btn-tipo {
+    padding: 7px 4px;
+    font-size: 0.82rem;
+}
+
+.card-login:has(.form-inicial) {
+    width: min(520px, 100%);
+    max-height: 95dvh;
+    padding: 20px 28px;
+    overflow-y: auto;
+}
+
+.card-login:has(.form-inicial) .logo-container {
+    width: 100%;
+    height: auto;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 12px;
+}
+
+.card-login:has(.form-inicial) .logo-container > div {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+}
+
+.card-login:has(.form-inicial) .titulo {
+    white-space: nowrap;
+    margin: 0 0 2px;
+}
+
+.card-login:has(.form-inicial) .subtitulo {
+    margin: 0;
+    line-height: 1.3;
+}
+
+.card-login:has(.form-inicial) .form-grupo {
+    margin-bottom: 10px;
+}
+
+.card-login:has(.form-inicial) .input-container input,
+.card-login:has(.form-inicial) .input-container select {
+    padding-top: 9px;
+    padding-bottom: 9px;
+}
+
+.card-login:has(.form-inicial)::-webkit-scrollbar {
+    width: 6px;
+}
+.card-login:has(.form-inicial)::-webkit-scrollbar-thumb {
+    background: #d0d7de;
+    border-radius: 999px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.campos-tipo {
+    margin: 0;
+}
+
 
 .input-container select {
     appearance: none;
@@ -381,32 +469,41 @@
     background-position: right 14px center;
 }
 
-/* Checklist de requisitos da senha */
 .checklist-senha {
     list-style: none;
-    margin: 0 0 16px;
-    padding: 12px 14px;
-    font-size: .8rem;
+    margin: 0 0 14px;
+    padding: 10px 14px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px 12px;
+    font-size: 0.78rem;
     color: var(--mut);
-    background: var(--bg);
-    border: 1px solid var(--line);
-    border-radius: 10px;
+    background: var(--input);
+    border-radius: 12px;
 }
-.checklist-senha:empty { display: none; }
+
+.checklist-senha:empty {
+    display: none;
+}
+
 .checklist-senha li {
     position: relative;
-    padding-left: 22px;
-    margin-bottom: 3px;
+    padding-left: 18px;
     transition: color .2s;
 }
-.checklist-senha li:last-child { margin-bottom: 0; }
+
 .checklist-senha li::before {
     content: "○";
     position: absolute;
     left: 0;
-    color: #bbbbbb;
+    color: #9aa3ab;
 }
-.checklist-senha li.ok { color: var(--green); }
+
+.checklist-senha li.ok {
+    color: var(--green);
+    font-weight: 500;
+}
+
 .checklist-senha li.ok::before {
     content: "✓";
     color: var(--green);
@@ -414,19 +511,37 @@
 }
 
 /* ===== Responsivo ===== */
+@media (max-width: 880px) {
+    .body-login {
+        justify-content: center;
+        padding: 16px;
+        background-position: center center;
+    }
+}
+
+@media (max-width: 540px) {
+    .form-row,
+    .checklist-senha {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 380px) {
-    .tipo-usuario-options { grid-template-columns: 1fr; }
+    .tipo-usuario-options {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 640px) {
-    /* iOS não dá zoom em campos com 16px */
     .input-container input,
-    .input-container select { font-size: 16px; }
+    .input-container select {
+        font-size: 16px;
+    }
 }
 
 @media (hover: none) {
     .btn-entrar:hover { transform: none; }
-    .btn-entrar, .btn-google, .btn-tipo { min-height: 46px; }
+    .btn-entrar, .btn-google, .btn-tipo { min-height: 44px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
