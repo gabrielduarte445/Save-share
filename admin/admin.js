@@ -21,6 +21,13 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import { signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
+const ICONES_ADMIN = {
+    relogio: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; flex-shrink: 0;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`,
+    check: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; flex-shrink: 0;"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
+    fechar: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; flex-shrink: 0;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`,
+    alerta: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; flex-shrink: 0;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`
+};
+
 const { usuario, dados } = await protegerPagina({ tipos: ["admin"] });
 
 const elNome = document.getElementById("adm-nome");
@@ -89,7 +96,7 @@ function itensChecklist(checklist) {
 
 // CÁLCULO DA CONTAGEM REGRESSIVA PARA O ADMIN
 function calcularTempoRestanteAdmin(dataExpiracaoIso) {
-    if (!dataExpiracaoIso) return { texto: "", expirado: false, cor: "#666" };
+    if (!dataExpiracaoIso) return { texto: "", expirado: false, cor: "#666", icone: "" };
 
     const agora = new Date();
     const dataExpira = new Date(dataExpiracaoIso);
@@ -97,9 +104,10 @@ function calcularTempoRestanteAdmin(dataExpiracaoIso) {
 
     if (diffMs <= 0) {
         return {
-            texto: `✕ Validade expirada em ${dataExpira.toLocaleDateString("pt-BR")}`,
+            texto: `Validade expirada em ${dataExpira.toLocaleDateString("pt-BR")}`,
             expirado: true,
-            cor: "#c62828"
+            cor: "#c62828",
+            icone: ICONES_ADMIN.fechar
         };
     }
 
@@ -109,16 +117,18 @@ function calcularTempoRestanteAdmin(dataExpiracaoIso) {
 
     if (dias > 0) {
         return {
-            texto: `⌛ Validade: restam ${dias} dia(s) e ${horasRestantes}h (expira em ${dataExpira.toLocaleDateString("pt-BR")})`,
+            texto: `Validade: restam ${dias} dia(s) e ${horasRestantes}h (expira em ${dataExpira.toLocaleDateString("pt-BR")})`,
             expirado: false,
-            cor: "#2e7d32"
+            cor: "#2e7d32",
+            icone: ICONES_ADMIN.relogio
         };
     }
 
     return {
-        texto: `⚠️ Expira hoje! Restam apenas ${horasRestantes} hora(s)`,
+        texto: `Expira hoje! Restam apenas ${horasRestantes} hora(s)`,
         expirado: false,
-        cor: "#e65100"
+        cor: "#e65100",
+        icone: ICONES_ADMIN.alerta
     };
 }
 
@@ -209,8 +219,8 @@ function acoesHtml(p, status) {
     let infoValidade = "";
     if (status === STATUS.APROVADO && p.expira_em) {
         const info = calcularTempoRestanteAdmin(p.expira_em);
-        infoValidade = `<br><span style="font-size: 12px; font-weight: 600; color: ${info.cor}; margin-top: 4px; display: inline-block;">
-            ${escaparHtml(info.texto)}
+        infoValidade = `<br><span style="font-size: 12px; font-weight: 600; color: ${info.cor}; margin-top: 4px; display: inline-flex; align-items: center;">
+            ${info.icone}<span>${escaparHtml(info.texto)}</span>
         </span>`;
     }
 
@@ -233,7 +243,7 @@ function criarCartao(p) {
     card.dataset.id = p.id;
 
     const itens = itensChecklist(p.checklist_consumivel)
-        .map((i) => `<li class="${i.ok ? "ok" : "falta"}">${i.ok ? "✓" : "✗"} ${escaparHtml(i.rotulo)}</li>`)
+        .map((i) => `<li class="${i.ok ? "ok" : "falta"}" style="display: flex; align-items: center;">${i.ok ? ICONES_ADMIN.check : ICONES_ADMIN.fechar}<span>${escaparHtml(i.rotulo)}</span></li>`)
         .join("");
 
     const preco = Number(p.valor).toFixed(2).replace(".", ",");

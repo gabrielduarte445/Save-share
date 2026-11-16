@@ -22,11 +22,20 @@ import {
 
 const MAX_FOTOS_LOTE = 3;
 
-const TEXTO_STATUS = {
-    pendente: "⏳ Em Análise",
-    aprovado: "✓ Verificado",
-    reprovado: "✕ Reprovado",
-    legado: "Aguardando migração"
+const ICONES_SVG = {
+    relogio: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; flex-shrink: 0;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`,
+    ampulheta: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; flex-shrink: 0;"><path d="M5 22h14"></path><path d="M5 2h14"></path><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"></path><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"></path></svg>`,
+    check: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; flex-shrink: 0;"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
+    fechar: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; flex-shrink: 0;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`,
+    alerta: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; flex-shrink: 0;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`,
+    removerMini: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`
+};
+
+const BADGE_STATUS = {
+    pendente: { icone: ICONES_SVG.ampulheta, texto: "Em Análise" },
+    aprovado: { icone: ICONES_SVG.check, texto: "Verificado" },
+    reprovado: { icone: ICONES_SVG.fechar, texto: "Reprovado" },
+    legado: { icone: "", texto: "Aguardando migração" }
 };
 
 // ELEMENTOS DA DOM
@@ -102,8 +111,9 @@ async function carregarProdutos() {
         listaProdutos.innerHTML = `<p class="empty-message">Não foi possível carregar seus produtos.</p>`;
     }
 }
+
 function calcularTempoRestanteComerciante(dataExpiracaoIso) {
-    if (!dataExpiracaoIso) return { texto: "", expirado: false };
+    if (!dataExpiracaoIso) return { texto: "", expirado: false, tipoIcone: null };
 
     const agora = new Date();
     const dataExpira = new Date(dataExpiracaoIso);
@@ -111,8 +121,9 @@ function calcularTempoRestanteComerciante(dataExpiracaoIso) {
 
     if (diffMs <= 0) {
         return {
-            texto: `✕ A aprovação deste produto expirou em ${dataExpira.toLocaleDateString("pt-BR")}. Edite para reenviar.`,
-            expirado: true
+            texto: `A aprovação deste produto expirou em ${dataExpira.toLocaleDateString("pt-BR")}. Edite para reenviar.`,
+            expirado: true,
+            tipoIcone: "fechar"
         };
     }
 
@@ -120,15 +131,21 @@ function calcularTempoRestanteComerciante(dataExpiracaoIso) {
     const dias = Math.floor(horasTotais / 24);
     const horasRestantes = horasTotais % 24;
 
-    let texto = "";
     if (dias > 0) {
-        texto = `⌛ Aprovação válida por mais ${dias} dia(s) e ${horasRestantes}h (expira em ${dataExpira.toLocaleDateString("pt-BR")})`;
-    } else {
-        texto = `⚠️ Aprovação expira hoje! Restam apenas ${horasRestantes} hora(s)`;
+        return {
+            texto: `Aprovação válida por mais ${dias} dia(s) e ${horasRestantes}h (expira em ${dataExpira.toLocaleDateString("pt-BR")})`,
+            expirado: false,
+            tipoIcone: "relogio"
+        };
     }
 
-    return { texto, expirado: false };
+    return {
+        texto: `Aprovação expira hoje! Restam apenas ${horasRestantes} hora(s)`,
+        expirado: false,
+        tipoIcone: "alerta"
+    };
 }
+
 function criarCardProduto(id, produto) {
     const card = document.createElement("div");
     card.className = "card-produto";
@@ -143,25 +160,32 @@ function criarCardProduto(id, produto) {
         classeEstoque = "estoque-baixo";
     }
 
-let status = produto.status_verificacao || "legado";
-    let textoBadge = TEXTO_STATUS[status] || status;
+    let status = produto.status_verificacao || "legado";
+    let badgeInfo = BADGE_STATUS[status] || { icone: "", texto: status };
+    let iconeBadge = badgeInfo.icone;
+    let textoBadge = badgeInfo.texto;
     let classeBadge = `status-${status}`;
     let avisoExpirado = "";
+
     if (status === "aprovado" && produto.expira_em) {
         const infoValidade = calcularTempoRestanteComerciante(produto.expira_em);
 
         if (infoValidade.expirado) {
-            textoBadge = "⚠ Validade Expirada";
+            iconeBadge = ICONES_SVG.fechar;
+            textoBadge = "Validade Expirada";
             classeBadge = "status-expirado";
-            avisoExpirado = `<p class="obs-expirado" style="color: #c62828; font-size: 12px; margin-top: 4px; font-weight: 500;">
-                ${escaparHtml(infoValidade.texto)}
+            avisoExpirado = `<p class="obs-expirado" style="color: #c62828; font-size: 12px; margin-top: 4px; font-weight: 500; display: flex; align-items: center;">
+                ${ICONES_SVG.fechar}<span>${escaparHtml(infoValidade.texto)}</span>
             </p>`;
         } else {
-            avisoExpirado = `<p class="obs-validade" style="color: #2e7d32; font-size: 12px; margin-top: 4px;">
-                ${escaparHtml(infoValidade.texto)}
+            const iconeValidade = ICONES_SVG[infoValidade.tipoIcone] || "";
+            const corValidade = infoValidade.tipoIcone === "relogio" ? "#2e7d32" : "#e65100";
+            avisoExpirado = `<p class="obs-validade" style="color: ${corValidade}; font-size: 12px; margin-top: 4px; display: flex; align-items: center;">
+                ${iconeValidade}<span>${escaparHtml(infoValidade.texto)}</span>
             </p>`;
         }
     }
+
     const valorFormatado = new Intl.NumberFormat("pt-BR", {
         style: "currency",
         currency: "BRL"
@@ -171,7 +195,6 @@ let status = produto.status_verificacao || "legado";
         ? `<p class="obs-reprovado" style="color: #c62828; font-size: 13px; margin-top: 6px;"><strong>Motivo da reprovação:</strong> ${escaparHtml(produto.observacao_admin)}</p>`
         : "";
 
-    // Mensagem informativa quando o produto estiver pendente (novo ou reaberto pelo admin)
     const avisoPendente = status === "pendente"
         ? `<p class="obs-pendente" style="color: #1565c0; font-size: 12px; margin-top: 4px;">Este produto está na fila de análise da administração.</p>`
         : "";
@@ -182,7 +205,9 @@ let status = produto.status_verificacao || "legado";
         </div>
 
         <div class="informacoes-produto">
-            <span class="status-badge-card ${escaparHtml(classeBadge)}">${escaparHtml(textoBadge)}</span>
+            <span class="status-badge-card ${escaparHtml(classeBadge)}" style="display: inline-flex; align-items: center;">
+                ${iconeBadge}${escaparHtml(textoBadge)}
+            </span>
             <h3>${escaparHtml(produto.nome)}</h3>
             <p class="preco">${escaparHtml(valorFormatado)}</p>
             <p class="estoque ${classeEstoque}">${escaparHtml(textoEstoque)}</p>
@@ -274,7 +299,8 @@ function renderizarPreviewsInspecao() {
         const btnRemover = document.createElement("button");
         btnRemover.type = "button";
         btnRemover.className = "btn-remover-inspecao";
-        btnRemover.textContent = "×";
+        btnRemover.setAttribute("aria-label", "Remover foto");
+        btnRemover.innerHTML = ICONES_SVG.removerMini;
         btnRemover.addEventListener("click", () => {
             inspecaoBase64.splice(index, 1);
             renderizarPreviewsInspecao();
