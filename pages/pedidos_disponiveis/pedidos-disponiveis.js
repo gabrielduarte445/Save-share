@@ -24,15 +24,29 @@ const FORMATO_CODIGO = /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/;
 const listaDisponiveis = document.getElementById("lista-disponiveis");
 const listaMinhasEntregas = document.getElementById("lista-minhas-entregas");
 const btnMinhaPosicao = document.getElementById("btn-minha-posicao");
+const nomeElemento = document.getElementById("user-name");
+const statusLocalizacaoElemento = document.getElementById("subtitulo-texto");
 
 const COR_DISPONIVEL = "#2e7d32";
 const COR_ENTREGA = "#1565c0";
 const CENTRO_PADRAO = [-12.9714, -38.5014]; // Salvador
 
-const { usuario } = await protegerPagina({ tipos: ["entregador"] });
+// Ícones SVG reutilizáveis
+const ICONE_LOJA = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px; color: #217738;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>`;
+
+const ICONE_CASA = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px; color: #1565c0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`;
+
+const ICONE_PIN = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px; color: #1565c0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`;
+
+const { usuario, dados } = await protegerPagina({ tipos: ["entregador"] });
 
 const usuarioAtual = usuario;
 const cacheLojas = new Map();
+
+// Preenche o nome do entregador no cabeçalho igual ao painel do comerciante
+if (nomeElemento) {
+    nomeElemento.textContent = dados?.nome || "Entregador";
+}
 
 // ---------- MAPA ----------
 
@@ -53,14 +67,12 @@ const pontosPedidos = new Map();
 let minhaPosicao = null;
 let temporizadorEnquadrar = null;
 
-// FUNÇÃO ENQUADRAR MAPA CORRIGIDA (Varre as camadas ativas sem dar erro)
 function enquadrarMapa() {
     clearTimeout(temporizadorEnquadrar);
     
     temporizadorEnquadrar = setTimeout(() => {
         const marcadoresValidos = [];
         
-        // Coleta marcadores válidos das camadas do mapa
         [camadaDisponiveis, camadaEntregas, camadaMinhaPosicao].forEach((camada) => {
             camada.eachLayer((layer) => {
                 if (layer && typeof layer.getLatLng === 'function') {
@@ -99,11 +111,18 @@ async function localizarEntregador() {
 
     if (!posicao) {
         mostrarToast("Não consegui sua localização. Permita o acesso no navegador.", "erro");
+        if (statusLocalizacaoElemento) {
+            statusLocalizacaoElemento.textContent = "Localização não permitida";
+        }
         return;
     }
 
     minhaPosicao = posicao;
     camadaMinhaPosicao.clearLayers();
+
+    if (statusLocalizacaoElemento) {
+        statusLocalizacaoElemento.textContent = "Localização ativa • Online para entregas";
+    }
 
     L.circleMarker([posicao.lat, posicao.lng], {
         radius: 9, color: "#ffffff", weight: 3, fillColor: "#e65100", fillOpacity: 1
@@ -132,15 +151,15 @@ async function obterDadosLoja(comercianteId) {
         }
 
         if (snapLoja.exists()) {
-            const dados = snapLoja.data();
+            const dadosLoja = snapLoja.data();
             const informacoesLoja = {
-                nome: dados.nome_loja || dados.nome || "Loja",
-                endereco: dados.endereco || dados.endereco_loja || {
-                    logradouro: dados.logradouro || "Endereço da Loja",
-                    numero: dados.numero || "",
-                    bairro: dados.bairro || "",
-                    cidade: dados.cidade || "",
-                    estado: dados.estado || ""
+                nome: dadosLoja.nome_loja || dadosLoja.nome || "Loja",
+                endereco: dadosLoja.endereco || dadosLoja.endereco_loja || {
+                    logradouro: dadosLoja.logradouro || "Endereço da Loja",
+                    numero: dadosLoja.numero || "",
+                    bairro: dadosLoja.bairro || "",
+                    cidade: dadosLoja.cidade || "",
+                    estado: dadosLoja.estado || ""
                 }
             };
             cacheLojas.set(comercianteId, informacoesLoja);
@@ -262,8 +281,8 @@ function escutarDisponiveis() {
             card.dataset.pedidoId = docSnap.id;
             card.innerHTML = `
                 <p class="pedido-valor">R$ ${valorFormatado(pedido)}</p>
-                <p class="pedido-endereco">🏢 <strong>Retirada (Loja):</strong> ${escaparHtml(dadosLoja.nome)}<br>${textoEndereco(dadosLoja.endereco)}</p>
-                <p class="pedido-endereco">🏠 <strong>Entrega (Cliente):</strong> ${textoEndereco(pedido.endereco_snapshot)}</p>
+                <p class="pedido-endereco">${ICONE_LOJA}<strong>Retirada (Loja):</strong> ${escaparHtml(dadosLoja.nome)}<br>${textoEndereco(dadosLoja.endereco)}</p>
+                <p class="pedido-endereco">${ICONE_CASA}<strong>Entrega (Cliente):</strong> ${textoEndereco(pedido.endereco_snapshot)}</p>
                 <p class="pedido-distancia">Localizando no mapa...</p>
                 <p class="pedido-itens">${textoItens(pedido)}</p>
                 <button type="button" class="btn-ver-mapa" hidden>Ver loja no mapa</button>
@@ -343,7 +362,7 @@ function escutarMinhasEntregas() {
             card.dataset.pedidoId = docSnap.id;
             card.innerHTML = `
                 <p class="pedido-valor">R$ ${valorFormatado(pedido)}</p>
-                <p class="pedido-endereco">📍 <strong>Entregar em:</strong> ${textoEndereco(pedido.endereco_snapshot)}</p>
+                <p class="pedido-endereco">${ICONE_PIN}<strong>Entregar em:</strong> ${textoEndereco(pedido.endereco_snapshot)}</p>
                 <p class="pedido-endereco" style="font-size:12px; color:#777;">Retirado em: ${escaparHtml(dadosLoja.nome)}</p>
                 <p class="pedido-distancia">Localizando no mapa...</p>
                 <p class="pedido-itens">${textoItens(pedido)}</p>

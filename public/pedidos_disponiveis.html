@@ -20,51 +20,120 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f7f8f9;
+            background-color: #f5f6f7;
             color: #333333;
         }
 
-        .topbar {
-            background-color: #ffffff;
-            border-bottom: 1px solid #eaedf0;
-            padding: 24px 40px;
+        .app-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: 100vh;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            background-color: #efeae2;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160' opacity='0.12'%3E%3Cg fill='none' stroke='%23000000' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 25 h20 v25 h-20 z M25 25 a5 5 0 0 1 10 0'/%3E%3Ccircle cx='100' cy='30' r='10'/%3E%3Cpath d='M100 25 v5 h4'/%3E%3Crect x='120' y='100' width='22' height='18' rx='2'/%3E%3Cpath d='M120 106 h22 M131 100 v6'/%3E%3Cpath d='M30 110 l2 5 h5 l-4 3 l2 5 l-5 -3 l-5 3 l2 -5 l-4 -3 h5 z'/%3E%3Cpath d='M70 80 l12 -12 h15 v15 l-12 12 z M90 73 a2 2 0 1 0 0.1 0'/%3E%3Cpath d='M60 25 h15 v12 h-15 z M75 30 h8 l4 4 v3 h-12 M63 37 a3 3 0 1 1 0.1 0 M82 37 a3 3 0 1 1 0.1 0'/%3E%3Cpath d='M110 65 a10 10 0 0 1 -10 10 h-3 l-4 4 v-4 a10 10 0 1 1 17 -10'/%3E%3C/g%3E%3C/svg%3E");
+            background-repeat: repeat;
+            background-size: 160px 160px;
         }
 
-        .topbar .titulo-pagina {
-            font-size: 22px;
+        .home-header {
+            background: linear-gradient(135deg, #1A1C1E 0%, #11572f 50%, #168548 100%);
+            padding: 20px 20px 24px 20px;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            color: #ffffff;
+        }
+
+        .header-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .greeting {
+            font-size: 13px;
+            opacity: 0.9;
+            line-height: 1.2;
+        }
+
+        .user-name {
+            font-size: 20px;
             font-weight: 700;
-            color: #222222;
-            margin-bottom: 4px;
+            line-height: 1.2;
+            margin: 2px 0 6px 0;
         }
 
-        .topbar .subtitulo-pagina {
-            font-size: 14px;
-            color: #757575;
+        .subtitulo-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            background-color: rgba(255, 255, 255, 0.15);
+            padding: 4px 12px;
+            border-radius: 12px;
+            max-width: fit-content;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-btn {
+            position: relative;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .header-btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
         }
 
         .conteudo {
-            padding: 32px 40px;
+            padding: 24px 20px 40px 20px;
         }
 
         .secao {
-            margin-bottom: 40px;
+            margin-bottom: 32px;
         }
 
         .secao-titulo {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
             color: #222222;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
-        /* ---- Mapa ---- */
+        .mapa-card {
+            background-color: #ffffff;
+            border: 1px solid #eaedf0;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        }
+
         .mapa-cabecalho {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
 
         .mapa-cabecalho .secao-titulo { margin-bottom: 0; }
@@ -88,30 +157,35 @@
         }
 
         #btn-minha-posicao {
-            padding: 8px 14px;
-            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            font-size: 12px;
             font-weight: 600;
             color: #e65100;
-            background: #ffffff;
+            background: #fff8f5;
             border: 1px solid #e65100;
             border-radius: 20px;
             cursor: pointer;
+            transition: background-color 0.2s;
         }
 
+        #btn-minha-posicao:hover { background: #ffede6; }
         #btn-minha-posicao:disabled { opacity: 0.6; cursor: wait; }
 
         #mapa-entregas {
             width: 100%;
-            height: 380px;
+            height: 360px;
             border: 1px solid #eaedf0;
-            border-radius: 16px;
+            border-radius: 12px;
             z-index: 0;
         }
 
         .grid-pedidos {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 16px;
         }
 
         .card-pedido {
@@ -149,13 +223,13 @@
         .card-pedido button {
             margin-top: 8px;
             width: 100%;
-            padding: 12px;
-            font-size: 14px;
-            font-weight: 600;
+            padding: 11px;
+            font-size: 13px;
+            font-weight: 700;
             color: #ffffff;
-            background-color: #2e7d32;
+            background-color: #217738;
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
             transition: background-color 0.2s;
         }
@@ -174,7 +248,7 @@
 
         .card-pedido button.btn-ver-mapa {
             margin-top: 0;
-            padding: 8px;
+            padding: 9px;
             font-size: 13px;
             color: #217738;
             background: #ffffff;
@@ -190,9 +264,9 @@
             color: #1565c0;
             text-align: center;
             text-decoration: none;
-            padding: 8px;
+            padding: 9px;
             border: 1px solid #1565c0;
-            border-radius: 10px;
+            border-radius: 8px;
         }
 
         .empty-message {
@@ -200,7 +274,7 @@
             color: #888888;
             font-size: 14px;
             text-align: center;
-            padding: 40px 0;
+            padding: 40px 20px;
             background-color: #ffffff;
             border: 1px solid #eaedf0;
             border-radius: 16px;
@@ -217,34 +291,67 @@
             outline: none;
         }
 
-        .input-codigo:focus { border-color: #2e7d32; }
+        .input-codigo:focus { border-color: #217738; }
+
+        @media (min-width: 768px) {
+            .home-header { padding: 24px 32px 28px 32px; }
+            .conteudo { padding: 28px 32px 48px 32px; }
+        }
 
         @media (max-width: 600px) {
-            .topbar, .conteudo { padding-left: 16px; padding-right: 16px; }
-            #mapa-entregas { height: 300px; }
+            #mapa-entregas { height: 280px; }
         }
     </style>
 </head>
 <body>
+<main class="app-container">
 
-    <header class="topbar">
-        <div class="titulo-pagina">Pedidos Disponíveis</div>
-        <div class="subtitulo-pagina">Escolha um pedido para entregar</div>
+    <header class="home-header">
+        <div class="header-top-row">
+            <div class="user-info">
+                <p class="greeting">Olá,</p>
+                <h2 class="user-name" id="user-name">...</h2>
+                <div class="subtitulo-badge">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    <span id="subtitulo-texto">Escolha um pedido para entregar</span>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <a href="/public/perfil.html" class="header-btn" aria-label="Perfil" title="Meu Perfil">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </a>
+            </div>
+        </div>
     </header>
 
-    <main class="conteudo">
+    <div class="conteudo">
 
         <section class="secao">
-            <div class="mapa-cabecalho">
-                <div class="secao-titulo">Mapa</div>
-                <div class="legenda">
-                    <span style="--cor:#2e7d32">Disponível</span>
-                    <span style="--cor:#1565c0">Minha entrega</span>
-                    <span style="--cor:#e65100">Você</span>
+            <div class="mapa-card">
+                <div class="mapa-cabecalho">
+                    <div class="secao-titulo">Mapa</div>
+                    <div class="legenda">
+                        <span style="--cor:#2e7d32">Disponível</span>
+                        <span style="--cor:#1565c0">Minha entrega</span>
+                        <span style="--cor:#e65100">Você</span>
+                    </div>
+                    <button type="button" id="btn-minha-posicao">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        Atualizar minha localização
+                    </button>
                 </div>
-                <button type="button" id="btn-minha-posicao">📍 Atualizar minha localização</button>
+                <div id="mapa-entregas"></div>
             </div>
-            <div id="mapa-entregas"></div>
         </section>
 
         <section class="secao">
@@ -261,8 +368,9 @@
             </div>
         </section>
 
-    </main>
+    </div>
 
-    <script type="module" src="../pages/pedidos_disponiveis/pedidos-disponiveis.js"></script>
+</main>
+<script type="module" src="../pages/pedidos_disponiveis/pedidos-disponiveis.js"></script>
 </body>
 </html>
