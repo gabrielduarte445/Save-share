@@ -19,6 +19,7 @@ import {
 const formulario = document.getElementById("perfilForm");
 const botaoSalvar = document.getElementById("btn-salvar-perfil");
 const botaoSair = document.getElementById("btn-sair");
+const botaoVoltar = document.querySelector(".perfil-voltar");
 const mensagemStatus = document.getElementById("mensagem-status");
 
 const campoNome = document.getElementById("nome");
@@ -51,7 +52,17 @@ async function carregarDadosUsuario() {
             const dados = docUsuario.data();
             campoNome.value = dados.nome || "";
             campoTelefone.value = dados.telefone || "";
-            campoTipoDisplay.value = dados.tipo_usuario === "comerciante" ? "Comerciante" : "Cliente";
+
+            if (dados.tipo_usuario === "entregador") {
+                campoTipoDisplay.value = "Entregador";
+                if (botaoVoltar) botaoVoltar.href = "/public/pedidos_disponiveis.html";
+            } else if (dados.tipo_usuario === "comerciante") {
+                campoTipoDisplay.value = "Comerciante";
+                if (botaoVoltar) botaoVoltar.href = "/public/home.html";
+            } else {
+                campoTipoDisplay.value = "Cliente";
+                if (botaoVoltar) botaoVoltar.href = "/public/home.html";
+            }
         }
 
     } catch (erro) {
@@ -154,9 +165,6 @@ function mostrarStatus(texto, tipo) {
 }
 
 
-// =========================
-// SAIR DA CONTA
-// =========================
 
 botaoSair.addEventListener("click", async () => {
 
@@ -168,6 +176,6 @@ botaoSair.addEventListener("click", async () => {
         window.location.href = "/public/login.html";
     } catch (erro) {
         console.error("Erro ao sair:", erro);
-        mostrarToast("Não foi possível sair. Tente novamente.","erro");
+        mostrarToast("Não foi possível sair. Tente novamente.", "erro");
     }
 });
