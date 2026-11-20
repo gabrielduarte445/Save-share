@@ -43,7 +43,7 @@ const { usuario, dados } = await protegerPagina({ tipos: ["entregador"] });
 const usuarioAtual = usuario;
 const cacheLojas = new Map();
 
-// Preenche o nome do entregador no cabeçalho igual ao painel do comerciante
+// Preenche o nome do entregador no cabeçalho
 if (nomeElemento) {
     nomeElemento.textContent = dados?.nome || "Entregador";
 }
@@ -103,7 +103,7 @@ function atualizarDistancias() {
     });
 }
 
-async function localizarEntregador() {
+async function localizarEntregador(exibirToastSucesso = false) {
     if (btnMinhaPosicao) btnMinhaPosicao.disabled = true;
 
     const posicao = await obterPosicaoAtual();
@@ -130,10 +130,14 @@ async function localizarEntregador() {
 
     atualizarDistancias();
     enquadrarMapa();
+
+    if (exibirToastSucesso) {
+        mostrarToast("Localização atualizada!", "sucesso");
+    }
 }
 
 if (btnMinhaPosicao) {
-    btnMinhaPosicao.addEventListener("click", localizarEntregador);
+    btnMinhaPosicao.addEventListener("click", () => localizarEntregador(true));
 }
 
 async function obterDadosLoja(comercianteId) {
@@ -418,4 +422,4 @@ async function concluirEntrega(pedidoId, codigoDigitado, codigoEntregaEsperado) 
 
 escutarDisponiveis();
 escutarMinhasEntregas();
-localizarEntregador();
+localizarEntregador(false);
