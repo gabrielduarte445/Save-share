@@ -25,7 +25,7 @@
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    padding: 20px 24px 20px clamp(24px, 8vw, 130px);
+    padding: 20px 24px 54px clamp(24px, 8vw, 130px);
     overflow-x: hidden;
     font-family: var(--sans);
     color: var(--txt);
@@ -132,7 +132,6 @@
     flex: 1;
     min-width: 0;
 }
-
 
 .input-container {
     position: relative;
@@ -366,19 +365,21 @@
 .link-cadastro:hover {
     text-decoration: underline;
 }
+
 /* ==========================================================================
-   AJUSTE FINO EXCLUSIVO DO LOGIN (Tela única sem rolagem)
+   AJUSTE FINO EXCLUSIVO DO LOGIN E CADASTRO (Tela única com barra inferior)
    ========================================================================== */
-.body-login:has(.form-login) {
+.body-login:has(.form-login),
+.body-login:has(.form-inicial) {
     height: 100dvh;
     padding-top: 14px;
-    padding-bottom: 14px;
+    padding-bottom: 52px;
     overflow: hidden;
 }
 
 .card-login:has(.form-login) {
     width: min(410px, 100%);
-    max-height: 95dvh;
+    max-height: calc(100dvh - 68px);
     padding: 20px 28px;
     overflow-y: auto;
 }
@@ -399,7 +400,7 @@
 
 .card-login:has(.form-inicial) {
     width: min(520px, 100%);
-    max-height: 95dvh;
+    max-height: calc(100dvh - 68px);
     padding: 20px 28px;
     overflow-y: auto;
 }
@@ -440,10 +441,12 @@
     padding-bottom: 9px;
 }
 
-.card-login:has(.form-inicial)::-webkit-scrollbar {
+.card-login:has(.form-inicial)::-webkit-scrollbar,
+.card-login:has(.form-login)::-webkit-scrollbar {
     width: 6px;
 }
-.card-login:has(.form-inicial)::-webkit-scrollbar-thumb {
+.card-login:has(.form-inicial)::-webkit-scrollbar-thumb,
+.card-login:has(.form-login)::-webkit-scrollbar-thumb {
     background: #d0d7de;
     border-radius: 999px;
 }
@@ -457,7 +460,6 @@
 .campos-tipo {
     margin: 0;
 }
-
 
 .input-container select {
     appearance: none;
@@ -510,12 +512,102 @@
     font-weight: 700;
 }
 
+/* ==========================================================================
+   CARROSSEL INFERIOR DE IMPACTO (TICKER INFINITO)
+   ========================================================================== */
+.impacto-ticker {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 38px;
+    background: rgba(235, 241, 236, 0.94);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-top: 1px solid rgba(46, 125, 50, 0.18);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    z-index: 50;
+    user-select: none;
+}
+
+.impacto-track {
+    display: flex;
+    width: max-content;
+    animation: tickerLoop 34s linear infinite;
+}
+
+.impacto-ticker:hover .impacto-track,
+.impacto-ticker:active .impacto-track {
+    animation-play-state: paused;
+}
+
+.impacto-grupo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-right: 14px;
+    white-space: nowrap;
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: #1f2922;
+}
+
+.impacto-grupo strong {
+    color: var(--green);
+    font-weight: 800;
+}
+
+.impacto-grupo .separador {
+    color: #8c9690;
+    font-weight: 400;
+}
+
+@keyframes tickerLoop {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
 /* ===== Responsivo ===== */
 @media (max-width: 880px) {
     .body-login {
         justify-content: center;
-        padding: 16px;
+        padding: 16px 16px 50px 16px;
         background-position: center center;
+    }
+}
+
+@media (max-width: 640px) {
+    .body-login:has(.form-login),
+    .body-login:has(.form-inicial) {
+        padding-bottom: 44px;
+    }
+
+    .card-login:has(.form-login),
+    .card-login:has(.form-inicial) {
+        max-height: calc(100dvh - 58px);
+    }
+
+    .input-container input,
+    .input-container select {
+        font-size: 16px;
+    }
+
+    .impacto-ticker {
+        height: 34px;
+    }
+
+    .impacto-grupo {
+        font-size: 0.7rem;
+        gap: 10px;
+        padding-right: 10px;
+    }
+
+    .impacto-track {
+        animation-duration: 26s;
     }
 }
 
@@ -532,13 +624,6 @@
     }
 }
 
-@media (max-width: 640px) {
-    .input-container input,
-    .input-container select {
-        font-size: 16px;
-    }
-}
-
 @media (hover: none) {
     .btn-entrar:hover { transform: none; }
     .btn-entrar, .btn-google, .btn-tipo { min-height: 44px; }
@@ -550,5 +635,11 @@
     .body-login *::after {
         animation: none !important;
         transition: none !important;
+    }
+
+    .impacto-track {
+        animation: none;
+        overflow-x: auto;
+        padding: 0 16px;
     }
 }
